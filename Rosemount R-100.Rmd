@@ -1,0 +1,433 @@
+---
+title: "Rosemount R-100"
+author: "Dominic Christensen"
+date: "06/17/2022"
+output: html_document
+---
+
+# Rosemount R-100 tables, figures, and statistics
+
+# Set working directory, load packages, read data files, and modify character codes
+```{r}
+# Load packages
+library(readxl)
+library(tidyverse)
+library(emmeans)
+library(lme4)
+library(lattice)
+library(patchwork)
+library(car)
+library(ggeffects)
+
+
+# Read data file
+r100<- read.csv("Rosemount_R100.csv")
+
+# Modify character codes
+str(r100)
+r100$stand.age<- as.factor(r100$stand.age)
+r100$Block<- as.factor(r100$Block)
+
+# Note: One modification occured from original master file and that was changing "Control" to "control".
+
+```
+
+
+```{r jesse exploring}
+
+r100 %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin() +
+  labs(caption = "if we filter values below 150, it would be normally distributed\nthis could be due to lodging")
+
+r100 %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin(aes(fill=stand.age)) +
+  labs(caption = "nevermind, explained by stand age")
+
+r100 %>% 
+  ggplot(aes(yield.kgperha)) +
+  # geom_density(aes(col=Ntiming)) +
+  stat_bin(aes(fill=Ntiming)) +
+  facet_wrap(~stand.age) +
+  labs(caption = "year3 looks weird, could be lodging")
+
+r100 %>% 
+  ggplot(aes(yield.kgperha)) +
+  geom_density(aes(col=factor(Napplied_update))) +
+  facet_wrap(~stand.age) +
+  labs(caption = "is lodging explaining why low rates are normally distributed but others are skewed?")
+
+# Just start with stand age = 2, that's normal
+# stand age 3 might need to be modeled with a glm
+```
+
+```{r jesse exploring more}
+
+lme.jpb.1 <- lmer(yield.kgperha~Napplied_update*Ntiming+(1|Block), data=subset(r100,stand.age=="2"))
+summary(lme.jpb.1)
+# this model is too complex for data, rank deficient
+
+lme.jpb.2 <- lmer(yield.kgperha~(Napplied_update)*Ntiming+(1|Block), data=subset(r100,stand.age=="2"))
+summary(lme.jpb.2)
+Anova(lme.jpb.2)
+
+r100 %>% 
+  # filter(stand.age=="2") %>%
+  ggplot(aes(Napplied_update,yield.kgperha)) +
+  geom_point(aes(col=Ntiming)) +
+  geom_smooth(method="lm") +
+  geom_smooth(method = "lm",
+              # se=F,
+              formula = y~poly(x,2),
+              aes(group = Ntiming,
+                  col=Ntiming)) +
+  facet_wrap(~stand.age)
+  labs(caption = "this is the cleanest dataset for r100, and it really shows no difference from adding N or obvious trend from timing")
+
+
+```
+
+
+# Anova tables
+```{r}
+## Yield
+lme.r100.all.int<- lmer(yield.kgperha~Napplied_update*Ntiming*stand.age+(1|Block), data=r100)
+#summary(lme.r100.all.int)
+#anova(lme.r100.all.int)
+#ref_grid(lme.r100.all.int)
+#confint(lme.r100.all.int)
+Anova(lme.r100.all.int, type="II")
+
+## Lodging
+lme.r100.lodge<- lmer(Lodging~Napplied_update*Ntiming+(1|Block), data=r100)
+#summary(lme.r100.lodge)
+#anova(lme.r100.lodge)
+#ref_grid(lme.r100.lodge)
+#confint(lme.r100.lodge)
+Anova(lme.r100.lodge, type="II")
+
+## Height
+r100.long<- pivot_longer(data=r100, 
+                                cols=Height_1:Height_5, 
+                                names_to = "Height", 
+                                values_to = "ht.msmt")
+str(r100.long)
+lme.r100.ht.long<- lmer(ht.msmt~Napplied_update*Ntiming+(1|Block), data=r100.long)
+#ref_grid(lme.r100.ht.long)
+#summary(lme.r100.ht.long)
+#confint(lme.r100.ht.long)
+#anova(lme.r100.ht.long)
+Anova(lme.r100.ht.long, type="II")
+
+
+```
+
+
+# Generate table of average response variables (yield, height, lodging) between stand age and nitrogen application rate
+```{r}
+# Get average yield and lodging score for Rosemount R-100 (with three sig. figs.)
+r100.nitrogenapplied<- r100 %>% group_by(stand.age, Napplied_update) %>% summarise(
+  ntot=n(),
+  sd.lodging=signif(sd(Lodging),3),
+  mean.lodging=signif(mean(Lodging),3),
+  sd.yield=signif(sd(yield.kgperha),3),
+  mean.yield=signif(mean(yield.kgperha),3),
+  SE.yield=sd.yield/(sqrt(ntot))
+)
+
+# Join together means and standard deviation values in a single column
+r100.nitrogenapplied$yield <- paste(r100.nitrogenapplied$mean.yield, 
+                                r100.nitrogenapplied$sd.yield, sep = " ")
+r100.nitrogenapplied$Lodging<- paste(r100.nitrogenapplied$mean.lodging, 
+                                 r100.nitrogenapplied$sd.lodging, sep = " ")
+
+# Relevel
+r100.nitrogenapplied$Napplied_update<- factor(r100.nitrogenapplied$Napplied_update,
+                                        levels=c("0","20","40","60","80","100","120","140"))
+
+# Get average height Rosemount R-100 (with three sig. figs.)
+r100.nitrogenapplied.long<- r100.long %>% group_by(Napplied_update, stand.age) %>% summarise(
+  number_of_samples=n(),
+  sd.Height=signif(sd(ht.msmt),3),
+  mean.Height=signif(mean(ht.msmt),3)
+)
+
+# Relevel
+r100.nitrogenapplied.long$Napplied_update<- factor(r100.nitrogenapplied.long$Napplied_update,
+                                        levels=c("0","20","40","60","80","100","120","140"))
+
+# Join together means and standard deviation values in a single column
+r100.nitrogenapplied.long$Height<- paste(r100.nitrogenapplied.long$mean.Height,
+                                     r100.nitrogenapplied.long$sd.Height, sep = " ")
+
+```
+
+
+# Figure of yield as a function of nitrogen rate by stand age
+```{r}
+# Estimating marginal means for Rosemount R-100 differences in grain yield amongst nitrogen application rates.
+
+# Experimental model
+lme.r100.experimental<- lmer(yield.kgperha~poly(Napplied_update,2)*stand.age+(1|Block), data=r100)
+Anova(lme.r100.experimental, type="II")
+summary(lme.r100.experimental)
+
+# Prediction model
+pred1<- ggpredict(lme.r100.experimental, terms=c("Napplied_update [all]", "stand.age"))
+plot(pred1)
+
+
+##
+##
+
+
+# Add facet labels
+label.standages.st<- as_labeller(c(`1`="Stand age 1",`2`="Stand age 2",`3`="Stand age 3"))
+# Add color-blind palette
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#999999", "#0072B2", "#D55E00", "#CC79A7")
+
+# Plot figure
+r100.yield.rate.age<- ggplot(r100.nitrogenapplied, aes(x=Napplied_update, y=mean.yield, fill=Napplied_update))+
+  facet_grid(.~stand.age, labeller = label.standages.st, scales="free")+
+  geom_bar(stat="identity", color="black")+
+  geom_errorbar(aes(ymax = mean.yield+SE.yield, ymin = mean.yield-SE.yield), width=0.35)+
+  labs(x=(expression("Nitrogen application rate" ~ (lb ~ ac^{-1}))),
+       y=(expression("Grain yield" ~ (kg ~ ha^{-1}))),
+       caption="standard error shown",
+       fill="Nitrogen rate"
+       )+
+  scale_fill_manual(values=cbbPalette)+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=12),
+       axis.title.x.bottom = element_text(size=11),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=9),
+       legend.text = element_text(size=12),
+       legend.title = element_text(size=12),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=18),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=12, angle=0),
+       strip.text.y = element_text(size=12, angle=-90))
+r100.yield.rate.age
+
+```
+
+
+# Figure of lodging as a function of nitrogen timing and rate
+```{r}
+# Get average lodging data
+rsmtr100.avg.lodge<- r100 %>% group_by(Ntiming_newlabel, Napplied_update, Ntiming) %>% summarise(
+  number_of_samples=n(),
+  sd.lo=sd(Lodging, na.rm=T),
+  mean.lo=mean(Lodging, na.rm=T),
+  SE.lo=sd.lo/(sqrt(number_of_samples))
+)
+
+# Relevel nitrogen rate for lodging dataset
+rsmtr100.avg.lodge$Napplied_update<- factor(rsmtr100.avg.lodge$Napplied_update,
+                                        levels=c("0","20","40","60","80","100","120","140"))
+
+
+# Plotting the interaction of nitrogen timing and application on lodging
+plot.r100.lodge<- ggplot(rsmtr100.avg.lodge, aes(x=Napplied_update, y=mean.lo,
+                                             fill=Ntiming))+
+  geom_bar(stat="identity", position="dodge", color="black")+
+  geom_errorbar(aes(ymax = mean.lo+SE.lo, ymin = mean.lo-SE.lo), 
+                position = position_dodge2(width=0.20, padding=0.5, preserve = "total"))+
+  labs(x=(expression("Nitrogen application rate" ~ (lb ~ ac^{-1}))),
+       y="Average lodging (0-10)",
+       color="Nitrogen timing",
+       shape="Nitrogen timing")+
+  scale_y_continuous(breaks=c(0,2,4,6,8,10),limits=c(0,10))+
+  scale_fill_hue(c=45, l=80,labels=c("Unfertilized","Fall","Fall split",
+                                "Spring","Spring split"))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=12),
+       axis.title.x.bottom = element_text(size=11),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=9),
+       legend.text = element_text(size=12),
+       legend.title = element_text(size=12),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=18),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=12, angle=0),
+       strip.text.y = element_text(size=12, angle=-90))
+plot.r100.lodge
+
+```
+
+
+# Figure of height as a function of nitrogen timing and rate
+```{r}
+
+# Get average height data
+r100.avg.height<- r100.long %>% group_by(Ntiming_newlabel, Napplied_update, Ntiming) %>% summarise(
+  number_of_samples=n(),
+  sd.ht=sd(ht.msmt, na.rm=T),
+  mean.ht=mean(ht.msmt, na.rm=T),
+  SE.ht=sd.ht/(sqrt(number_of_samples))
+)
+
+# Plot average height
+plot.r100.height.avg<- ggplot(r100.avg.height, 
+                              aes(x=Napplied_update, y=mean.ht,fill=Ntiming))+
+  geom_bar(stat="identity", position = "dodge")+
+  geom_errorbar(aes(ymax = mean.ht+SE.ht, ymin = mean.ht-SE.ht), 
+                position = position_dodge2(width=0.20, padding=0.5, preserve = "total"))+
+  scale_x_continuous(breaks=c(0,60,80,100,120,140),limits=c(-10,150))+
+  labs(x=(expression("Nitrogen application rate" ~ (lb ~ ac^{-1}))),
+       y="Average plant height (cm)",
+       fill="Nitrogen timing |"
+       )+
+  scale_fill_hue(c=45, l=80, 
+                 labels=c("Unfertilized","Fall","Fall split","Spring","Spring split"))+
+  coord_cartesian(ylim=c(135,160))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=12),
+       axis.title.x.bottom = element_text(size=11),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=9),
+       legend.text = element_text(size=12),
+       legend.title = element_text(size=12),
+       legend.position = "top",
+       plot.title = element_text(hjust = 0.50, face="bold", size=18),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=12, angle=0),
+       strip.text.y = element_text(size=12, angle=-90))
+plot.r100.height.avg
+
+
+```
+
+
+# Figure of yield plot with all data points facetted by stand age point type and color by stand age
+```{r}
+
+# Apply facet labels
+timing.labels<- as_labeller(c(`control`="Unfertilized",
+                              `Fall`="Fall",
+                              `Fall split`="Fall split",
+                              `Spring`="Spring",
+                              `Spring split`="Spring split"))
+
+label.standages.st<- as_labeller(c(`1`="Stand age 1",`2`="Stand age 2",`3`="Stand age 3"))
+
+
+# Add color-blind palette with black:
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#999999", "#0072B2", "#D55E00", "#CC79A7")
+
+plotr100.yield.all<- ggplot(r100, aes(x=Napplied_update, y=yield.kgperha, color=Ntiming_newlabel, shape=stand.age))+
+  facet_grid(.~stand.age, labeller = label.standages.st)+
+  geom_point(size=2)+
+  labs(x=(expression("Nitrogen application rate" ~ (lb ~ ac^{-1}))),
+       y=(expression("Grain yield" ~ (kg ~ ha^{-1}))),
+       color="Nitrogen timing",
+       shape="Stand age"
+  )+
+  scale_colour_manual(values=cbbPalette,
+                      breaks=c("control","Unfertilized (Fall)","Fall","Fall split","Split (Fall split)","Spring","Spring split"),
+                      labels=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split","Split (Fall split)","Spring","Spring split"))+
+  scale_x_continuous(breaks=c(0,20,40,60,80,100,120,140))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=12),
+        axis.title.x.bottom = element_text(size=12),
+        axis.title.y = element_text(size=12),
+        axis.text.x = element_text(angle=0, hjust=0.5, size=9),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        legend.position = "right",
+        plot.title = element_text(hjust = 0.50, face="bold", size=14),
+        plot.subtitle = element_text(hjust = 0.50, size=10),
+        strip.text.x = element_text(size=12, angle=0),
+        strip.text.y = element_text(size=12, angle=-90),
+        panel.spacing = unit(1, "lines"))
+plotr100.yield.all
+
+
+```
+
+
+# Yield with nitrogen timing barplots
+```{r}
+
+# Get summary information for yield data at each timing and stand age
+r100.yield.timing<- r100 %>% group_by(Ntiming_newlabel, stand.age) %>% summarise(
+  ntot=n(),
+  sd.yield=sd(yield.kgperha),
+  mean.yield=mean(yield.kgperha),
+  SE.yield=sd.yield/(sqrt(ntot))
+)
+
+# Facet labels
+stand.age<- as_labeller(c(`2`="Stand age 2",`3`="Stand age 3"))
+
+# Adjust color-blind palette
+cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#999999", "#0072B2", "#D55E00")
+
+# Relevel
+r100.yield.timing$Ntiming_newlabel<- factor(r100.yield.timing$Ntiming_newlabel,
+                                            levels=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split","Split (Fall split)","Spring","Spring split"))
+
+# Plot bar plot
+plot.r100.yield.timing<- ggplot(r100.yield.timing, 
+                                aes(x=Ntiming_newlabel, y=mean.yield, fill=Ntiming_newlabel))+
+  facet_grid(.~stand.age,labeller=stand.age, scales="free")+
+  geom_bar(stat="identity", position="dodge")+
+  geom_errorbar(aes(ymin = mean.yield-SE.yield, ymax = mean.yield+SE.yield), 
+                width = 0.35, color="grey20")+
+  labs(x="Nitrogen timing",
+       y=(expression("Average grain yield" ~ (kg ~ ha^{-1}))),
+       fill="Nitrogen timing")+
+  scale_y_continuous(breaks = c(0,200,400,600,800), limits = c(0,700))+
+  scale_fill_manual(values=cbbPalette,
+                    breaks=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split","Split (Fall split)","Spring","Spring split"),
+                    labels=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split","Split (Fall split)","Spring","Spring split"))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=12),
+        axis.title.x.bottom = element_text(size=12),
+        axis.title.y = element_text(size=12),
+        axis.text.x = element_text(angle=20, hjust=1, size=10),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        legend.position = "right",
+        plot.title = element_text(hjust = 0.50, face="bold", size=14),
+        plot.subtitle = element_text(hjust = 0.50, size=10),
+        strip.text.x = element_text(size=12, angle=0),
+        strip.text.y = element_text(size=12, angle=-90))
+plot.r100.yield.timing
+
+```
+
+
+# Save high-quality figures to working directory
+```{r}
+
+# Lodging
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/r100.lodging.nrate.timing.tif",res = 600, width = 9, height = 6, units = "in", compression="lzw")
+plot.r100.lodge
+#dev.off()
+
+# Height
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/r100.ht.nrate.timing.tif",res = 600, width = 9, height = 6, units = "in", compression="lzw")
+plot.r100.height.avg
+#dev.off()
+
+# Grain yield as a function of nitrogen rate and stand age
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/r100.yield.nrate.tif",res = 600, width = 9, height = 6, units = "in", compression="lzw")
+plotr100.yield.all
+#dev.off()
+
+# Grain yield as a function of nitrogen timing and stand age
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/r100.yield.timing.tif",res = 600, width = 9, height = 6, units = "in", compression="lzw")
+plot.r100.yield.timing
+#dev.off()
+
+```
+
+
+
+
+
