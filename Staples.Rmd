@@ -1,0 +1,591 @@
+---
+title: "Staples analysis"
+author: "Dominic Christensen"
+date: "06/17/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+# Set working directory, load pacakges, load data files, and modify character codes
+```{r}
+
+# Load packages
+library(readxl)
+library(tidyverse)
+library(emmeans)
+library(lme4)
+library(lattice)
+library(patchwork)
+library(car)
+library(patchwork)
+library(multcompView)
+
+# Load in staples datasets for analysis
+staples.split.dataset<- read.csv("Staples.Nsplit.analysis.only.csv") 
+staples.cumulative.dataset<- read.csv("Staples.csv")
+
+# Create dataset for fall & spring only analysis
+staples.fallspringonly<- subset(staples.cumulative.dataset, 
+                                Ntiming %in% c("Unfertilized","Fall","Spring"))
+
+# Modify character codes
+## Staples split
+str(staples.split.dataset)
+colnames(staples.split.dataset)
+names<- c(1,21:23)
+staples.split.dataset[,names] <- lapply(staples.split.dataset[,names] , factor)
+staples.split.dataset$Lodging<- as.integer(staples.split.dataset$Lodging)
+
+## Staples cumulative
+str(staples.cumulative.dataset)
+colnames(staples.cumulative.dataset)
+names<- c(1,21:24)
+staples.cumulative.dataset[,names] <- lapply(staples.cumulative.dataset[,names] , factor)
+staples.cumulative.dataset$Lodging<- as.integer(staples.cumulative.dataset$Lodging)
+
+# Staples fall & spring only fertilizer applications
+str(staples.fallspringonly)
+staples.fallspringonly$Ntiming<- as.factor(staples.fallspringonly$Ntiming)
+staples.fallspringonly$Block<- as.factor(staples.fallspringonly$Block)
+staples.fallspringonly$stand.age<- as.factor(staples.fallspringonly$stand.age)
+
+```
+
+
+# Staples split anova tables
+```{r}
+
+# Yield
+lme.staples.split<- lmer(yield.kgperha~poly(summerNrate,2)*Ntiming*stand.age+
+                        (1|Block), data=staples.split.dataset)
+Anova(lme.staples.split, type="II")
+#summary(lme.staples.split)
+#plot(lme.staples.split, main="Yield with predictor variables residuals")
+
+
+# Lodging
+lme.staples.split.lodging<- lmer(Lodging~poly(summerNrate,2)*Ntiming*stand.age+
+                        (1|Block), data=staples.split.dataset)
+Anova(lme.staples.split.lodging, type="II")
+#summary(lme.staples.lodging.all.interactions.poly)
+#plot(lme.staples.split.lodging, main="Yield with predictor variables residuals")
+
+
+# Height
+staples.split.dataset.long<- pivot_longer(data=staples.split.dataset, 
+                                cols=Height_1:Height_5, 
+                                names_to = "Height", 
+                                values_to = "ht.msmt")
+# Modify character codes
+str(staples.split.dataset.long)
+staples.split.dataset.long$ht.msmt<- as.numeric(staples.split.dataset.long$ht.msmt)
+# Model
+lme.staples.split.ht<- lmer(ht.msmt~poly(summerNrate,2)*Ntiming*stand.age+
+                        (1|Block), data=staples.split.dataset.long)
+Anova(lme.staples.split.ht, type="II")
+#summary(staples.ht.long)
+#plot(lme.staples.split.ht, main="Yield with predictor variables residuals")
+
+
+```
+
+
+# Staples fall & spring only anova tables
+```{r}
+str(staples.fallspringonly)
+str(staples.split.dataset)
+
+# Set as numeric variable
+staples.fallspringonly$Lodging<- as.numeric(staples.fallspringonly$Lodging)
+
+# Yield
+lme.staples.fs<- lmer(yield.kgperha~poly(updatedNrate,2)*Ntiming*stand.age+
+                        (1|Block), data=staples.fallspringonly)
+Anova(lme.staples.fs, type="II")
+#summary(lme.staples.fs)
+#plot(lme.staples.fs, main="Yield with predictor variables residuals")
+
+
+# Lodging
+lme.staples.fs.lodging<- lmer(Lodging~poly(updatedNrate,2)*Ntiming*stand.age+
+                        (1|Block), data=staples.fallspringonly)
+Anova(lme.staples.fs.lodging, type="II")
+#summary(lme.staples.fs.lodging)
+#plot(lme.staples.fs.lodging, main="Yield with predictor variables residuals")
+
+
+# Height
+staples.fs.dataset.long<- pivot_longer(data=staples.fallspringonly, 
+                                cols=Height_1:Height_5, 
+                                names_to = "Height", 
+                                values_to = "ht.msmt")
+# Modify character codes
+str(staples.fs.dataset.long)
+staples.fs.dataset.long$ht.msmt<- as.numeric(staples.fs.dataset.long$ht.msmt)
+
+# Model
+lme.staples.fs.ht<- lmer(ht.msmt~poly(updatedNrate,2)*Ntiming*stand.age+
+                        (1|Block), data=staples.fs.dataset.long)
+Anova(lme.staples.fs.ht, type="II")
+#summary(lme.staples.fs.ht)
+#plot(lme.staples.fs.ht, main="Yield with predictor variables residuals")
+
+```
+
+
+# Staples timing model (for bar plots)
+```{r}
+# Model
+str(staples.cumulative.dataset)
+lme.staples.base.model<- lmer(yield.kgperha~Ntiming+stand.age+
+                                (Ntiming:stand.age)+
+                                (1|Block), data=staples.cumulative.dataset)
+Anova(lme.staples.base.model, type="II")
+#summary(lme.staples.base.model)
+
+```
+
+
+# Staples split dataset modeling grain yield & plotting prediction curves (model & split plot)
+```{r}
+# Model
+lme.staples.split.model<- lmer(yield.kgperha~poly(summerNrate,2)+Ntiming+stand.age+
+                          (poly(summerNrate,2):stand.age)+
+                          (Ntiming:stand.age)+
+                          (1|Block), data=staples.split.dataset)
+Anova(lme.staples.split.model, type="II")
+
+# Develop prediction curve
+staples.split.model.dataset<- expand.grid(
+            summerNrate=c(0,10,20,30,40,50,60,70,80),
+            Ntiming=c("control","Fall split","Spring split"),
+            stand.age=c(1,2,3),
+            Block=c(1,2,3)
+)
+
+# Modify character codes
+staples.split.model.dataset<- as.data.frame(staples.split.model.dataset)
+str(staples.split.model.dataset)
+staples.split.model.dataset$Block<- as.factor(staples.split.model.dataset$Block)
+staples.split.model.dataset$stand.age<- as.factor(staples.split.model.dataset$stand.age)
+staples.split.model.dataset$Ntiming<- as.factor(staples.split.model.dataset$Ntiming)
+staples.split.model.dataset$summerNrate<- as.numeric(staples.split.model.dataset$summerNrate)
+
+# Calculate prediction curves
+str(staples.split.dataset)
+str(staples.split.model.dataset)
+
+str(p3 <- predict(lme.staples.split.model,
+                  staples.split.model.dataset,re.form=NA)) # new data, level-0
+staples.split.model.dataset<- cbind(staples.split.model.dataset, p3) # no random effects
+
+# Subset for block 1 only (since random effects aren't counted)
+staples.split.model.dataset<- subset(staples.split.model.dataset, Block=="1")
+
+# Subset out control line, since it really is not necessary
+staples.split.model.dataset<- subset(staples.split.model.dataset, Ntiming!="control")
+
+# Facet grid labels:
+label.standages.st<- as_labeller(c(`1`="Stand age 1",`2`="Stand age 2",`3`="Stand age 3"))
+
+
+# Relabel nitrogen timing column in both dataset such that for stand age 1 fall split is renamed "split (fall split)"
+staples.split.dataset$Ntiming_modify<- 
+ifelse(staples.split.dataset$Ntiming=="Fall split" & staples.split.dataset$stand.age==1, "Split (Fall split)", 
+ifelse(staples.split.dataset$Ntiming=="Spring split", "Spring split",
+ifelse(staples.split.dataset$Ntiming=="control","control",
+ifelse(staples.split.dataset$Ntiming=="Fall split" & staples.split.dataset$stand.age!=1, "Fall split", "missing"))))
+
+staples.split.model.dataset$Ntiming_modify<- 
+ifelse(staples.split.model.dataset$Ntiming=="Fall split" & staples.split.model.dataset$stand.age==1, "Split (Fall split)", 
+ifelse(staples.split.model.dataset$Ntiming=="Spring split", "Spring split",
+ifelse(staples.split.model.dataset$Ntiming=="control","control",
+ifelse(staples.split.model.dataset$Ntiming=="Fall split" & staples.split.model.dataset$stand.age!=1, "Fall split", "missing"))))
+
+
+# Plot prediction results
+plot.staples.split.model.dataset<- ggplot()+
+   geom_point(data=staples.split.dataset, 
+              aes(x=summerNrate, y=yield.kgperha,color=Ntiming_modify), size=2)+
+  geom_line(data=staples.split.model.dataset, 
+            aes(x=summerNrate,y=p3, color=Ntiming_modify,linetype=Ntiming_modify),size=1.5)+
+  facet_grid(.~stand.age, labeller = label.standages.st)+
+  labs(x=(expression("Split nitrogen application rate" ~ (lb ~ ac^{-1}))),
+       y=(expression("Grain yield" ~ (kg ~ ha^{-1}))),
+       color="Nitrogen timing",
+       linetype="Nitrogen timing"
+       )+
+  scale_color_discrete(
+                     breaks=c("Split (Fall split)","Fall split","Spring split"),
+                     labels=c("Split (Fall split)","Fall split","Spring split"))+
+  scale_linetype_discrete(
+                        breaks=c("Split (Fall split)","Fall split","Spring split"),
+                        labels=c("Split (Fall split)","Fall split","Spring split"))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=8),
+       axis.title.x.bottom = element_text(size=12),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=7),
+       legend.text = element_text(size=10),
+       legend.title = element_text(size=10),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=12),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=10, angle=0),
+       strip.text.y = element_text(size=10, angle=-90),
+       panel.spacing = unit(1, "lines"))
+plot.staples.split.model.dataset +
+  labs(caption = "what are red dots? -JPB")
+
+
+ggplot()+
+   geom_point(data=subset(staples.split.dataset, Ntiming_modify != "control"), 
+              aes(x=summerNrate, y=yield.kgperha,color=Ntiming_modify), size=2) +
+  geom_line(data=staples.split.model.dataset, 
+            aes(x=summerNrate,y=p3, color=Ntiming_modify,linetype=Ntiming_modify),size=1.5)+
+  facet_grid(.~stand.age, labeller = label.standages.st)+
+  labs(x=(expression("Split nitrogen application rate" ~ (lb ~ ac^{-1}))),
+       y=(expression("Grain yield" ~ (kg ~ ha^{-1}))),
+       color="Nitrogen timing",
+       linetype="Nitrogen timing"
+       )+
+  scale_color_discrete(
+                     breaks=c("Split (Fall split)","Fall split","Spring split"),
+                     labels=c("Split (Fall split)","Fall split","Spring split"))+
+  scale_linetype_discrete(
+                        breaks=c("Split (Fall split)","Fall split","Spring split"),
+                        labels=c("Split (Fall split)","Fall split","Spring split"))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=8),
+       axis.title.x.bottom = element_text(size=12),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=7),
+       legend.text = element_text(size=10),
+       legend.title = element_text(size=10),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=12),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=10, angle=0),
+       strip.text.y = element_text(size=10, angle=-90),
+       panel.spacing = unit(1, "lines")) +
+  labs(title = "KEEP - JPB")
+
+
+```
+
+
+# Staples prediction plot of grain yield differences from nitrogen rates among stand ages (figure)
+```{r}
+str(staples.cumulative.dataset)
+
+# Model
+lme.staples.overall.model<- lmer(yield.kgperha~poly(updatedNrate,2)*stand.age+
+                          (1|Block), data=staples.cumulative.dataset)
+Anova(lme.staples.overall.model, type="II")
+
+# Develop prediction curve
+staples.overall.model.dataset<- expand.grid(
+            updatedNrate=c(0,10,20,30,40,50,60,70,80,90,100,110,120,130,140),
+            stand.age=c(1,2,3),
+            Block=c(1,2,3)
+)
+
+# Modify character codes
+staples.overall.model.dataset<- as.data.frame(staples.overall.model.dataset)
+str(staples.overall.model.dataset)
+staples.overall.model.dataset$Block<- as.factor(staples.overall.model.dataset$Block)
+staples.overall.model.dataset$stand.age<- as.factor(staples.overall.model.dataset$stand.age)
+staples.overall.model.dataset$updatedNrate<- as.numeric(staples.overall.model.dataset$updatedNrate)
+
+# Calculate prediction curves
+str(staples.cumulative.dataset)
+str(staples.overall.model.dataset)
+
+str(p3 <- predict(lme.staples.overall.model,
+                  staples.overall.model.dataset,re.form=NA)) # new data, level-0
+staples.overall.model.dataset<- cbind(staples.overall.model.dataset, p3) # no random effects
+
+# Subset for block 1 only (since random effects aren't counted)
+staples.overall.model.dataset<- subset(staples.overall.model.dataset, Block=="1")
+
+
+# Plot:
+
+# Facet labels
+label.standages.st<- as_labeller(c(`1`="Stand age 1",`2`="Stand age 2",`3`="Stand age 3"))
+
+# Plot
+plot.staples.overall.model<- ggplot()+
+   geom_point(data=staples.cumulative.dataset, aes(x=updatedNrate, y=yield.kgperha,
+                                              color=stand.age), size=2)+
+  geom_line(data=staples.overall.model.dataset, aes(x=updatedNrate,y=p3,
+                                        color=stand.age),size=1.5)+
+  facet_grid(.~stand.age, labeller = label.standages.st)+
+  labs(x=(expression("Nitrogen application rate" ~ (lb ~ ac^{-1}))),
+       y=(expression("Grain yield" ~ (kg ~ ha^{-1}))),
+       color="Stand age"
+       )+
+  scale_x_continuous(breaks = c(0,20,40,60,80,100,120,140), limits = c(-1,145))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=7),
+       axis.title.x.bottom = element_text(size=10),
+       axis.title.y = element_text(size=10),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=7),
+       legend.text = element_text(size=10),
+       legend.title = element_text(size=10),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=12),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=10, angle=0),
+       strip.text.y = element_text(size=10, angle=-90),
+       panel.spacing = unit(1, "lines")) +
+  labs(title = "KEEP - JPB")
+plot.staples.overall.model
+
+
+# Get maximum yield values from prediction curve
+staples.overall.model.dataset.maximum.values<- staples.overall.model.dataset %>% group_by(stand.age) %>%
+  summarise(
+    ntot=n(),
+    max.yield=max(p3)
+  )
+
+```
+
+
+# Staples summary tables for tables and figures (tables & figures)
+```{r}
+staples.timing.age<- staples.cumulative.dataset %>% group_by(Ntiming_actual, stand.age) %>%
+  summarise(number_of_samples=n(),
+            sd.yield=sd(yield.kgperha),
+            mean.yield=mean(yield.kgperha),
+            SE.yield=sd.yield/(sqrt(number_of_samples))
+            )
+
+staples.timing.age2<- staples.cumulative.dataset %>% group_by(Ntiming, stand.age) %>%
+  summarise(number_of_samples=n(),
+            sd.yield=sd(yield.kgperha),
+            mean.yield=mean(yield.kgperha),
+            SE.yield=sd.yield/(sqrt(number_of_samples))
+            )
+
+staples.nrate.age<- staples.cumulative.dataset %>% group_by(updatedNrate, stand.age) %>%
+  summarise(number_of_samples=n(),
+            sd.yield=signif(sd(yield.kgperha),3),
+            mean.yield=signif(mean(yield.kgperha),3)
+            )
+
+# Paste mean and standard deviations together
+staples.nrate.age$yield <- paste(staples.nrate.age$mean.yield, staples.nrate.age$sd.yield, sep = " ")
+
+
+```
+
+
+# Staples average grain yield bar plot with different nitrogen timings (bar plot)
+```{r}
+staples.timing.age # data for bar plot
+lme.staples.base.model # model for means comparison
+
+# Modify reference grid
+staples.regrid.not.control<- ref_grid(lme.staples.base.model, 
+                                      at=list(Ntiming=c("Fall","Fall split",
+                                                        "Spring","Spring split")))
+
+# Run emmeans
+ref_grid(lme.staples.base.model)
+
+staples.timing.emmean<- emmeans(staples.regrid.not.control, ~Ntiming|stand.age)
+staples.timing.emmean
+
+# Calculate pairwise contrasts
+contrast(staples.timing.emmean, alpha = 0.05, method = "pairwise")
+# Get significant letters
+a<- multcomp::cld(staples.timing.emmean, alpha=0.05, Letters=LETTERS)
+
+# Linear prediction of yield based on nitrogen timing and stand age
+emmip(lme.staples.base.model, Ntiming~stand.age)
+
+# Significant letters
+staples.timing.age$sletters<- c( "c","c","bc",
+                                 "bc","b","c",
+                                 "ab","a","bc",
+                                 "a","ab","",
+                                 "","","a"
+                                 )
+
+# Relevel data set
+staples.timing.age$Ntiming_actual<- factor(staples.timing.age$Ntiming_actual,
+levels=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split","Split (Fall split)","Spring","Spring split"))
+
+# Plot
+plot.staples.timing<- ggplot(staples.timing.age, 
+                             aes(x=Ntiming_actual, y=mean.yield, fill=Ntiming_actual))+
+  geom_bar(stat="identity", position = "dodge")+
+  geom_errorbar(aes(ymin = mean.yield-SE.yield, ymax = mean.yield+SE.yield), 
+                width = 0.35, color="grey20")+
+  facet_grid(.~stand.age,labeller=label.standages.st, scales="free")+
+  geom_text(aes(label = staples.timing.age$sletters, y=mean.yield+SE.yield), vjust = -0.5)+
+  labs(x="Nitrogen timing",
+       y=(expression("Average grain yield" ~ (kg ~ ha^{-1}))),
+       fill="Nitrogen timing")+
+  scale_y_continuous(breaks = c(0,200,400,600,800,1000), limits = c(0,1000))+
+    scale_fill_hue(c=45, l=80, 
+                 labels=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split","Split (Fall split)","Spring","Spring split"))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=12),
+        axis.title.x.bottom = element_text(size=12),
+        axis.title.y = element_text(size=12),
+        axis.text.x = element_text(angle=20, hjust=1, size=10),
+        legend.text = element_text(size=12),
+        legend.title = element_text(size=12),
+        legend.position = "right",
+        plot.title = element_text(hjust = 0.50, face="bold", size=14),
+        plot.subtitle = element_text(hjust = 0.50, size=10),
+        strip.text.x = element_text(size=12, angle=0),
+        strip.text.y = element_text(size=12, angle=-90)) +
+  labs(title = "KEEP -JPB",
+       caption = "too many nitrogen timing treatments though, need to adjust")
+plot.staples.timing
+
+
+```
+
+
+# Staples accumulated grain yield and nitrogen figure (figure)
+```{r}
+
+# Plot 1
+plot.staples.cumulative.sum<- ggplot(staples.cumulative.dataset,
+                         aes(x=updatedNcumsum,y=yield.kgperha,color=Ntiming_actual))+
+  facet_grid(.~stand.age, scales = "free")+
+  geom_point(size=2)+
+  geom_smooth(method="lm", formula = y~poly(x,2),se=F)+ # Applying this function just to quickly see the trendline
+  labs(
+    x="Nitrogen cumulative sum (lbs/ac)",
+    y="Yield (kg/ha)",
+    title="Yield responses with stand age, nitrogen timing, and nitrogen rate"
+  )+
+  theme_bw()+
+  theme(axis.text.y = element_text(size=10),
+       axis.title.x.bottom = element_text(size=12),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=11),
+       legend.text = element_text(size=10),
+       legend.title = element_text(size=12),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=12),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=12, angle=0),
+       strip.text.y = element_text(size=12, angle=-90))
+plot.staples.cumulative.sum
+
+##
+##
+##
+# Facet grid labels:
+label.standages.st<- as_labeller(c(`1`="Stand age 1",`2`="Stand age 2",`3`="Stand age 3"))
+
+# Relevel data set
+staples.cumulative.dataset$Ntiming_actual<- factor(staples.cumulative.dataset$Ntiming_actual,
+levels=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split","Split (Fall split)","Spring","Spring split"))
+
+# Plot 2
+plot.staples.cumulative.sum2<- ggplot(staples.cumulative.dataset,
+                         aes(x=updatedNcumsum,y=cumulative.grain.yield,
+                             color=Ntiming_actual, shape=Ntiming_actual))+
+  facet_grid(.~stand.age, scales = "free", labeller = label.standages.st)+
+  geom_point(size=2)+
+  #geom_smooth(method="lm", formula = y~poly(x,2), se=F, size=0.5)+ # See trendline quickly
+    labs(
+       y=(expression("Cumulative grain yield" ~ (kg ~ ha^{-1}))),
+       x=(expression("Cumulative nitrogen applied" ~ (lbs ~ ac^{-1}))),
+       color="Nitrogen timing",
+       shape="Nitrogen timing"
+       #title="Cumulative grain yield by stand age and cumulative nitrogen applied"
+                 )+
+    scale_color_hue( 
+                 labels=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split",
+                          "Split (Fall split)","Spring","Spring split")
+                 )+
+    scale_shape_manual(values = c(1,2,3,4,5,6,7), 
+                       labels=c("Unfertilized","Unfertilized (Fall)","Fall","Fall split",
+                                "Split (Fall split)","Spring","Spring split")
+                 )+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=10),
+       axis.title.x.bottom = element_text(size=12),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=11),
+       legend.text = element_text(size=10),
+       legend.title = element_text(size=12),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=12),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=12, angle=0),
+       strip.text.y = element_text(size=12, angle=-90))
+plot.staples.cumulative.sum2
+
+
+
+# Plot 3
+plot.staples.cumulative.sum3<- ggplot(staples.cumulative.dataset,
+                         aes(x=updatedNcumsum,y=cumulative.grain.yield, color=stand.age))+
+  facet_grid(.~stand.age, scales = "free")+
+  geom_point(size=2)+
+  geom_smooth(method="lm", formula = y~poly(x,2), se=F)+ # Applying this function just to quickly see the trendline
+  labs(
+    x="Cumulative nitrogen applied (lbs/ac)",
+    y="Cumulative grain yield (kg/ha)",
+    title="Cumulative grain yield increases over stand age and nitrogen rate"
+  )+
+  theme_bw()+
+  theme(axis.text.y = element_text(size=10),
+       axis.title.x.bottom = element_text(size=12),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=11),
+       legend.text = element_text(size=10),
+       legend.title = element_text(size=12),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=12),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=12, angle=0),
+       strip.text.y = element_text(size=12, angle=-90)) +
+  labs(title = "KEEP - JPB",
+       caption = "I like how relationship gets more quadratic as stand age increases")
+plot.staples.cumulative.sum3
+
+
+```
+
+
+Save high-quality figures to working directory
+```{r}
+
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/staples.split,timing.tif",res = 600, width = 6, height = 3, units = "in", compression="lzw")
+plot.staples.split.model.dataset
+#dev.off()
+
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/staples.overall.model.tif",res = 600, width = 6, height = 3, units = "in", compression="lzw")
+plot.staples.overall.model
+#dev.off()
+
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/staples.timing.barplot.tif",res = 600, width = 9, height = 6, units = "in", compression="lzw")
+plot.staples.timing
+#dev.off()
+
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/staples.cumulative.sum.tif",res = 600, width = 9, height = 6, units = "in", compression="lzw")
+plot.staples.cumulative.sum2
+#dev.off()
+
+```
+
+
+
+
+
+
+
+
