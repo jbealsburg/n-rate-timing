@@ -270,7 +270,9 @@ ggplot()+
        strip.text.x = element_text(size=10, angle=0),
        strip.text.y = element_text(size=10, angle=-90),
        panel.spacing = unit(1, "lines")) +
-  labs(title = "KEEP - JPB")
+  labs(title = "KEEP - JPB",
+       caption = "staples") -> gg1
+gg1
 
 
 ```
@@ -343,6 +345,7 @@ plot.staples.overall.model<- ggplot()+
        panel.spacing = unit(1, "lines")) +
   labs(title = "KEEP - JPB")
 plot.staples.overall.model
+gg2 <- plot.staples.overall.model
 
 
 # Get maximum yield values from prediction curve
@@ -448,7 +451,8 @@ plot.staples.timing<- ggplot(staples.timing.age,
         strip.text.y = element_text(size=12, angle=-90)) +
   labs(title = "KEEP -JPB",
        caption = "too many nitrogen timing treatments though, need to adjust")
-plot.staples.timing
+plot.staples.timing -> gg3
+gg3
 
 
 ```
@@ -555,7 +559,8 @@ plot.staples.cumulative.sum3<- ggplot(staples.cumulative.dataset,
        strip.text.y = element_text(size=12, angle=-90)) +
   labs(title = "KEEP - JPB",
        caption = "I like how relationship gets more quadratic as stand age increases")
-plot.staples.cumulative.sum3
+plot.staples.cumulative.sum3 -> gg4
+gg4
 
 
 ```

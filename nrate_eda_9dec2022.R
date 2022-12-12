@@ -33,15 +33,35 @@
 # ) 
 
 # does rate of N matter?
-lm = yield~N_prior_to_harvest*standage
+# lm = yield~N_prior_to_harvest*standage
 
-lm = yield ~ N_spring*N_summer*N_fall*standage
+# lm = yield ~ N_spring*N_summer*N_fall*standage
+
+
+# comments ----------------------------------------------------------------
+
+# grain yields are ranging from 10-100 kg ha at each site, is this a conversion
+# error?
+
+# staples dataset makes the most sense, feels like strongest dataset 
+
+# r100 seems weird, unfertilized and low fertilized did best--was this due to
+# lodging?
+
+# V17 seems good, but maybe a little lighter on data
+
+# key conclusions ---------------------------------------------------------
+
+# yields differ among stand age
+# yields differ in plots that were not fertilized vs plots that were fertilized
+
 
 
 
 # import data -------------------------------------------------------------
 library(tidyverse)
 
+# importing master dataset
 read.csv("data_yield.csv") -> dat
 
 dat %>% 
@@ -95,8 +115,7 @@ str_split(dat_site1$treatment,
                           timing)) %>% 
   mutate(
     rate_total = as.numeric(rate_total),
-    rate_summer = rate_total - 60) %>% 
-  View()
+    rate_summer = rate_total - 60) 
 # I keep seeing things I don't expect
 # need to review these methods more
 # why do some say split and others do not?
@@ -137,7 +156,7 @@ dat2 %>%
 
 # I am going to work through Dominic's markdown files to try to get clarity
 
-# STOP at 3pm sunday
+# STOP at 3pm 11Dec
 
 # START Just bringing in datasets from markdown files for hypothesis testing,
 # each site remains separate
@@ -166,7 +185,47 @@ r100 %>%
   mutate_all(factor) %>% 
   mutate(yield.kgperha = as.numeric(yield.kgperha)) -> dat_r100
 
+# there are like 3 staples datasets...
+staples <- read.csv("Staples.csv")
+staples_split <- read.csv("Staples.Nsplit.analysis.only.csv")
+staples.fallspringonly<- subset(staples.cumulative.dataset, 
+                                Ntiming %in% c("Unfertilized","Fall","Spring"))
 
+staples %>% 
+  rename_all(tolower) %>% 
+  # colnames()
+  dplyr::select(year,experiment,location,id,treatment,
+                napplied,ntiming,stand.age,block,
+                ntiming_actual, #is ntiming actual same as ntiming_newlabel?
+                updatednrate, #same as napplied_update
+                updatedncumsum,
+                yield.kgperha,
+                cumulative.grain.yield
+  ) %>% 
+  mutate_all(factor) %>% 
+  mutate(yield.kgperha = as.numeric(yield.kgperha),
+         cumulative.grain.yield = as.numeric(cumulative.grain.yield)) -> dat_staples
+
+dat_staples %>% 
+  filter(ntiming == "Unfertilized" |
+           ntiming == "Fall" |
+           ntiming == "Spring") -> dat_staples_fallspring
+
+staples_split  %>% 
+  rename_all(tolower) %>% 
+  # colnames()
+  dplyr::select(year,experiment,location,id,treatment,
+                napplied,ntiming,stand.age,block,
+                summernrate, #only thing different
+                yield.kgperha
+  ) %>% 
+  mutate_all(factor) %>% 
+  mutate(yield.kgperha = as.numeric(yield.kgperha)) -> dat_staples_split
+
+# seems like dat_staples is most robust, but lacks summernrate factor
+
+
+  
 # Does iwg grain yield differ by timing? ----------------------------------
 
 # Ho: iwg grain yield does not differ when fertilizer is applied at different
@@ -178,29 +237,19 @@ dat_v17 %>%
   stat_bin(aes(fill=stand.age)) +
   labs(caption = "normally distributed within stand age")
 
-lm1 <- lm(yield.kgperha~stand.age*ntiming,
-          dat_v17)
+dat_v17 %>% 
+  # distinct(ntiming)
+  filter(ntiming != "control") %>% 
+  lm(yield.kgperha~stand.age*ntiming,
+          .) -> lm1
 anova(lm1)
 # I ran mixed model, block didn't help and too many fixed effects made it rank
 # deficient. This is the way. 
 
-dat_v17 %>%
-  distinct(ntiming)
-  # distinct(stand.age)
-
 # we reject Ho that grain yield is similar between 1yr 2yr and 3yr stands
 
-# we reject Ho that grain yield is similar among timings (control, fall,
-# spring, split) HOWEVER, let's see if we filter out control from dataset
-  
-dat_v17 %>% 
-  filter(ntiming != "control") %>% 
-  lm(yield.kgperha~stand.age*ntiming,
-     .) %>% 
-  anova()
-
-# we cannot reject Ho that grain yield is similar among timings (fall, spring,
-# split)
+# we fail to reject Ho that grain yield is similar among timings (fall,
+# spring, split) 
 
   
 ## R100
@@ -216,6 +265,8 @@ dat_r100 %>%
   #   yield.kgperha~napplied_update*
   #     ntiming+(1|block), 
   #   data=.) # rank defficient, block useless
+  # distinct(ntiming)
+  filter(ntiming != "control") %>% 
   lm(
     yield.kgperha~stand.age*ntiming,
     .
@@ -226,15 +277,54 @@ dat_r100 %>%
 
 # reject Ho that grain yield is similar among stand.age
 
-# cannot reject Ho that grain yield is similar among different timings
+# fail to reject Ho that grain yield is similar among different timings
 
 
 ## staples 
 
-# need to get excel document downloaded on work computer
+dat_staples %>% 
+  # glimpse()
+  # lmer(
+    # yield.kgperha~ntiming_actual*
+      # stand.age+(1|block),
+    # data=.) # rank defficient, block useless
+  # distinct(ntiming)
+  filter(ntiming != "Unfertilized") %>% 
+  lm(
+    # yield.kgperha~stand.age*ntiming_actual,
+    yield.kgperha~stand.age*ntiming,
+    .
+  ) %>% 
+  # summary()
+  anova()
+  # emmeans(~ntiming) 
+
+# reject Ho that grain yield is the same among timing HOWEVER we may not be able
+# to reject this at all stand ages
+
+dat_staples %>% 
+  filter(ntiming != "Unfertilized") %>% 
+  ggplot(aes(
+    ntiming,
+    # ntiming_actual,
+    yield.kgperha)) +
+  stat_summary() +
+  # geom_jitter(width = .2) +
+  # geom_boxplot(fill=NA,width=.2) +
+  facet_wrap(~stand.age)
+
+# looks like trend is consistent except for year 1 which makes sense because
+# ntiming was weird because in fall year 1 don't see that fertilizer until year
+# 2. I say we deal with that data another way that adding in a bunch of new
+# treatment names as in ntiming_actual
+
 
 
 ## Compiled
+
+# grain yields differ among stand age and between fertilizer (yes vs no), but
+# among fertilized plots we fail to reject Ho that grain yields are similar
+
 dat_v17 %>% 
   filter(ntiming != "control") %>% 
   ggplot(aes(ntiming,yield.kgperha)) +
@@ -242,7 +332,7 @@ dat_v17 %>%
               aes(col=stand.age)) +
   geom_boxplot(fill=NA,
                width=.2) +
-  labs(caption = "v17")
+  labs(caption = "v17\n fail to reject Ho that grain yield is similar among different timings")
 
 dat_r100 %>% 
   filter(ntiming != "control") %>% 
@@ -251,22 +341,48 @@ dat_r100 %>%
               aes(col=stand.age)) +
   geom_boxplot(fill=NA,
                width=.2) +
-  labs(caption = "r100")
+  labs(caption = "r100\nfail to reject ho that grain yield is similar among timings")
 
 
-# yld~timing*age*site
+
+dat_staples %>% 
+  filter(ntiming != "Unfertilized") %>% 
+  ggplot(aes(ntiming,yield.kgperha)) +
+  geom_jitter(width=.2,
+              aes(col=stand.age)) +
+  geom_boxplot(fill=NA,
+               width=.2) +
+  facet_wrap(~stand.age) +
+  labs(caption = "staples
+  reject ho that yield is same among timing but with standage interaction
+       facet wrapping by stand.age due to interaction
+       I understand ntiming is not accurate for stand.age==1
+       likely adjusting ntiming will remove interaction, but I don't like the ntiming_update ")
+
 
 # Applied research question addressed: "I'd prefer to fertilize in fall vs.
 # spring, can I apply fertilize in the fall and get high yields?
+
+# ANSWER: if fertilizer timing (fall vs. spring) impacts yield potential, we
+# failed to detect any differences in V17 and R100. In staples, grain yields
+# were higher in the second and third years where fertilizer was applied in the
+# fall.
 
 
 # Does iwg grain yield differ by rate? ------------------------------------
 
 # Ho: Grain yield does not differ among different fertilizer rates
 
-
 # yld~rate*age*site subsetted within timing?
 # yld~timing*rate*age*site
+
+# running all code in "Staples.Rmd"
+
+gg1
+gg2 + labs(caption = "staples")
+gg3 + labs(caption = "staples")
+gg4 + labs(caption = "staples")
+
 
 # Applied research question addressed: "I'd prefer to fertilize in fall vs.
 # spring, can I apply fertilize in the fall and get high yields? Do I need to
@@ -290,7 +406,49 @@ dat_r100 %>%
 # Assuming you have to pick a fertilizer program to do every year, what is the
 # best program?
 
-# yld~treatment*site*year
+# mixed effect models didn't really add much
+
+# V17
+dat_v17 %>% 
+  # glimpse()
+  lmer(yield.kgperha~treatment*stand.age +
+         (1|block),.) %>% 
+  # lm(yield.kgperha~treatment*stand.age,
+     # .) %>% 
+  # anova()
+  emmeans(~treatment)
+# 80 fall split for V17
+
+#R100
+dat_r100 %>% 
+  # glimpse()
+  lmer(yield.kgperha~treatment*stand.age +
+         (1|block),.) %>% 
+  # lm(yield.kgperha~treatment*stand.age,
+     # .) %>% 
+  # anova()
+  emmeans(~treatment) %>% 
+  as_tibble() %>% 
+  arrange(emmean)
+# 60 spring for R100, control is also high. Maybe lodging explains?
+
+# staples
+dat_staples %>% 
+  # glimpse()
+  lmer(yield.kgperha~treatment*stand.age +
+         (1|block),.) %>%
+  # car::Anova()
+  # lm(yield.kgperha~treatment*stand.age,
+     # .) %>%
+  # anova()
+  emmeans(~treatment) %>% 
+  as_tibble() %>% 
+  arrange(emmean)
+# 100 fall split
+
+# we would conclude the fall split applications were associated with the highest
+# yielding plots in V17 and staples. R100 yields were highest in spring applied
+# and control
 
 
 # Do grain yields differ when fertilizer is split applied? ----------------
