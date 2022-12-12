@@ -1,0 +1,483 @@
+---
+title: "Rosemount V-17"
+author: "Dominic Christensen"
+date: "6/17/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Rosemount V-17
+
+# Set working directory, load packages, load data file, and modify character codes
+```{r}
+
+# Load packages
+library(readxl)
+library(tidyverse)
+library(emmeans)
+library(lme4)
+library(lattice)
+library(patchwork)
+library(car)
+library(patchwork)
+
+# Load data file
+rsmtv17<- read.csv("Rosemount-V17.csv", header=T)
+
+# Modify character codes
+rsmtv17$stand.age<- as.factor(rsmtv17$stand.age)
+rsmtv17$Block<- as.factor(rsmtv17$Block)
+
+```
+
+```{r jesse exploring}
+
+rsmtv17 %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin() +
+  labs(caption = "kinda normally distributed")
+
+rsmtv17 %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin(aes(fill=stand.age)) +
+  labs(caption = "nevermind, explained by stand age")
+
+rsmtv17 %>% 
+  ggplot(aes(yield.kgperha)) +
+  # geom_density(aes(col=Ntiming)) +
+  stat_bin(aes(fill=Ntiming)) +
+  facet_wrap(~stand.age) +
+  labs(caption = "year3 looks weird, could be lodging")
+
+rsmtv17 %>% 
+  # colnames()
+  ggplot(aes(yield.kgperha)) +
+  geom_density(aes(col=factor(Napplied))) +
+  facet_wrap(~stand.age) +
+  labs(caption = "alright, here we have clear differences by N applied between Napplied")
+
+# Just start with stand age = 2, that's normal
+# stand age 3 might need to be modeled with a glm
+```
+
+
+```{r jesse exploring more}
+
+rsmtv17 %>% 
+  # colnames()
+  glimpse()
+
+lme.jpb.1 <- lmer(yield.kgperha~factor(Napplied)*Ntiming*stand.age+(1|Block), data=rsmtv17)
+summary(lme.jpb.1)
+# this model is too complex for data, rank deficient
+
+lm.jpb.2 <- lm(yield.kgperha~factor(Napplied)*stand.age, data=rsmtv17)
+summary(lm.jpb.2)
+anova(lm.jpb.2)
+
+lm.jpb.3 <- lm(yield.kgperha~factor(Napplied)*stand.age*Ntiming,
+               rsmtv17)
+anova(lm.jpb.3)
+
+lme.jpb.3 <- lmer(
+  yield.kgperha~factor(Napplied)*stand.age*Ntiming +
+    (1|Block),
+  rsmtv17
+)
+summary(lme.jpb.3)
+# block explains no variance, so we forget the mixed effect
+# so we can run the simple linear model
+# reject Ho that yield is the similar regardless of Napplied
+# reject Ho that yield is the same among stand.age
+# cannot reject Ho that there is no effect of Ntiming or interactions
+
+rsmtv17 %>% 
+  ggplot(aes(factor(Napplied),yield.kgperha)) +
+  geom_jitter(width = .2) +
+  geom_boxplot(fill=NA,
+               width=.2) +
+  labs(caption = "stand age and applying N are only ways yield differs in V17")
+
+# what about we forget the control data and just look at the 80N applied data
+
+rsmtv17 %>% 
+  filter(Napplied == "80") %>% 
+  # distinct(Napplied)
+  # colnames()
+  # distinct(Year)
+  lm(
+    yield.kgperha~Ntiming*stand.age,.
+  ) %>% 
+  anova()
+# cannot reject Ho that timing does not impact kernza yield
+# note that having stand.age and year in the model is redundant since they represent the same data
+
+```
+
+
+
+
+# Anova tables
+```{r}
+# Rosemount V-17 (rsmtv17)
+#####
+str(rsmtv17)
+## Yield
+lm.v17<- lmer(yield.kgperha~Ntiming*stand.age+(1|Block), data=rsmtv17)
+#summary(lm.v17)
+#confint(lm.v17)
+#anova(lm.v17)
+Anova(lm.v17, type="II")
+
+## Lodging
+lm.v17.lodging<- lmer(Lodging~Ntiming*stand.age+(1|Block), data=rsmtv17)
+#summary(lm.v17.lodging)
+#confint(lm.v17.lodging)
+#anova(lm.v17.lodging)
+Anova(lm.v17.lodging, type="II")
+
+# Create long dataset for height analysis
+rsmtv17.long<- pivot_longer(data=rsmtv17, 
+                                cols=Height_1:Height_5, 
+                                names_to = "Height", 
+                                values_to = "ht.msmt")
+str(rsmtv17.long)
+lm.v17.height<- lmer(ht.msmt~Ntiming*stand.age+(1|Block), data=rsmtv17.long)
+#summary(lm.v17.height)
+#confint(lm.v17.height)
+#anova(lm.v17.height)
+Anova(lm.v17.height, type="II")
+
+```
+
+
+# Plots and statistics
+```{r include=FALSE}
+# Model
+lm.v17<- lmer(yield.kgperha~Ntiming*stand.age+(1|Block), data=rsmtv17)
+anova(lm.v17)
+summary(lm.v17)
+ref_grid(lm.v17)
+
+# Residuals
+par(mfrow=c(2,2))
+plot(lm.v17)
+par(mfrow=c(1,1))
+qqnorm(residuals(lm.v17))
+qqline(residuals(lm.v17))
+
+# Estimating marginal means
+## Modify reference grid to not include control treatment
+#staples.refgrid.FalltoSSplit<- ref_grid(lme.staples.some.int, at=list(Ntiming=c("Fall","Fall split","Spring","Spring split")))
+lm.v17.emmean<- emmeans(lm.v17, ~Ntiming|stand.age)
+lm.v17.emmean.data<- as.data.frame(lm.v17.emmean)
+lm.v17.emmean
+
+# Calculating pairwise contrasts
+contrast(lm.v17.emmean, alpha = 0.05, method = "pairwise")
+
+# Linear prediction of yield based on nitrogen timing and stand age
+emmip(lm.v17, Ntiming~stand.age)
+
+
+# Plot the result with standard error and significant letters
+rsmtv17.avg<- rsmtv17 %>% group_by(stand.age, Ntiming) %>% summarise(
+  number_of_samples= n(),
+  sd.yield=sd(yield.kgperha, na.rm=T),
+  mean.yield=mean(yield.kgperha, na.rm=T),
+  SE.yield= (sd.yield)/(sqrt(number_of_samples))
+)
+
+# Standard error bars
+limits.SE.yield<- aes(ymax = mean.yield+SE.yield, ymin = mean.yield-SE.yield)
+# Facet label
+label.standages<- as_labeller(c(`1`="Stand age 1",`2`="Stand age 2",`3`="Stand age 3"))
+# Significant letters
+rsmtv17.avg$cld<- c("a","a","a","a","a","b","ab","ab","a","a","a","a")
+
+# Plot average yield values with significant differences
+plot.rsmtv17.avg<- ggplot(rsmtv17.avg, aes(x=Ntiming, y=mean.yield, fill=Ntiming))+
+  geom_bar(stat="identity",position = "dodge")+
+  facet_grid(.~stand.age, labeller = label.standages)+
+  geom_errorbar(limits.SE.yield, width=0.2)+
+  scale_fill_hue(c=45, l=80, 
+                 labels=c("Unfertilized","Fall 80","Split 80","Spring 80"))+
+  geom_text(aes(label = cld, y=mean.yield+SE.yield), vjust = -0.5)+
+  labs(x="",
+       y=(expression("Average grain yield" ~ (kg ~ ha^{-1}))),
+       #title="Rosemount V-17 grain yield as a function of fertility treatment and stand age",
+       fill="Fertility treatment",
+       linetype="Nitrogen timing")+
+  scale_x_discrete(labels=c("Unfertilized","Fall 80","Split 80","Spring 80"))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=12),
+       axis.title.x.bottom = element_text(size=12),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=9),
+       legend.text = element_text(size=12),
+       legend.title = element_text(size=12),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=12),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=12, angle=0),
+       strip.text.y = element_text(size=12, angle=-90))
+plot.rsmtv17.avg
+
+
+# Rosemount V-17. Plotting all yield data.
+plot.V17.yield<- ggplot(rsmtv17, aes(x=Treatment, y=yield.kgperha, 
+                                     color=Ntiming, shape=Ntiming))+
+  geom_point(size=2.2)+
+  facet_grid(.~stand.age, labeller = label.standages)+
+  scale_color_hue(c=45, l=80, 
+                 labels=c("Unfertilized","Fall 80","Split 80","Spring 80"))+
+  scale_shape_discrete(labels=c("Unfertilized","Fall 80","Split 80","Spring 80"))+
+  labs(x="",
+       y=(expression("Grain yield" ~ (kg ~ ha^{-1}))),
+       color="Fertility treatment",
+       shape="Fertility treatment")+
+  scale_x_discrete(labels=c("Unfertilized","Fall 80","Split 80","Spring 80"))+
+  scale_y_continuous(breaks = c(250,500,750,1000,1250), limits = c(0,1350))+
+  theme_classic()+
+  theme(axis.text.y = element_text(size=10),
+       axis.title.x.bottom = element_text(size=12),
+       axis.title.y = element_text(size=12),
+       axis.text.x = element_text(angle=0, hjust=0.5, size=8),
+       legend.text = element_text(size=12),
+       legend.title = element_text(size=12),
+       legend.position = "right",
+       plot.title = element_text(hjust = 0.50, face="bold", size=12),
+       plot.subtitle = element_text(hjust = 0.50, size=10),
+       strip.text.x = element_text(size=12, angle=0),
+       strip.text.y = element_text(size=12, angle=-90))
+plot.V17.yield
+
+
+# Rosemount V-17 plotting height and lodging data on a single graph
+# Get average and standard error for lodging and height. Join together datasets. Plot both facetting the variable including height and lodging.
+
+# Lodging mean, sd, and SE
+rsmtv17.avg.lo<- rsmtv17 %>% group_by(stand.age, Ntiming) %>% summarise(
+  ntot=n(),
+  sd.lo=sd(Lodging),
+  mean.lo=mean(Lodging),
+  SE.lo=sd.lo/(sqrt(ntot))
+)
+
+# Height mean, sd, and SE
+rsmtv17.avg.ht<- rsmtv17.long %>% group_by(stand.age, Ntiming) %>% summarise(
+  ntot.ht=n(),
+  sd.ht=sd(ht.msmt),
+  mean.ht=mean(ht.msmt),
+  SE.ht=sd.ht/(sqrt(ntot.ht))
+)
+
+# Join together dataset
+avg.v17.lo.ht<- left_join(rsmtv17.avg.lo, rsmtv17.avg.ht, 
+                          by=c("stand.age", "Ntiming"))
+# Remove stand age three
+avg.v17.lo.ht<- subset(avg.v17.lo.ht, stand.age %in% c(1,2))
+
+# Facet labels
+st.age.2<- as_labeller(c(`1`="Stand age 1",`2`="Stand age 2"))
+
+# Plot lodging and height scores for V17
+plot.v17.lo<- ggplot(avg.v17.lo.ht)+
+  facet_grid(.~stand.age, labeller = st.age.2)+
+  # Lodging
+  geom_bar(data=avg.v17.lo.ht,
+           aes(x=Ntiming, y=mean.lo, fill=Ntiming), stat="identity")+
+  geom_errorbar(data=avg.v17.lo.ht, 
+                aes(x=Ntiming, ymin = mean.lo-SE.lo,ymax = mean.lo+SE.lo), width=0.2)+
+  labs(x="",
+       y="Average lodging score (0-10)",
+       fill="Fertility treatment:")+
+  scale_fill_hue(c=45, l=80, 
+                 labels=c("Unfertilized","Fall 80","Split 80","Spring 80"))+
+  # Aesthetics
+  theme_classic()+
+  theme(axis.text.y = element_text(size=7,family="Helvetica"),
+        axis.title.x.bottom = element_text(size=9, family="Helvetica"),
+        axis.title.y = element_text(size=9, family="Helvetica"),
+        axis.text.x = element_blank(),
+        legend.text = element_text(size=10, family="Helvetica"),
+       legend.position = "top",
+       plot.title = element_text(hjust = 0.50, face="bold", size=8),
+       strip.text.x = element_text(size=8, family="Helvetica"),
+       strip.text.y = element_text(size=5, family="Helvetica"),
+       panel.grid = element_line(color="white"),
+       plot.tag = element_text(size = 10, family="Helvetica"),
+       plot.tag.position = c(0.08, 0.99),
+       panel.spacing = unit(0.8, "lines"))
+
+# Plot height
+plot.v17.ht<- ggplot(avg.v17.lo.ht)+
+  facet_grid(.~stand.age, labeller = st.age.2)+
+  # Height
+    geom_bar(data=avg.v17.lo.ht,
+           aes(x=Ntiming, y=mean.ht, fill=Ntiming), stat="identity")+
+  geom_errorbar(data=avg.v17.lo.ht, 
+                aes(x=Ntiming, ymin = mean.ht-SE.ht,ymax = mean.ht+SE.ht), width=0.2)+
+  labs(x="",
+       y="Average height (cm)",
+       fill="Fertility treatment:")+
+  coord_cartesian(ylim=c(100,180))+
+    scale_fill_hue(c=45, l=80, 
+                 labels=c("Unfertilized","Fall 80","Split 80","Spring 80"))+
+    scale_x_discrete(labels=c("Unfertilized","Fall 80","Split 80","Spring 80"))+
+  # Aesthetics
+  theme_classic()+
+  theme(axis.text.y = element_text(size=7,family="Helvetica"),
+        axis.title.x.bottom = element_text(size=9, family="Helvetica"),
+        axis.title.y = element_text(size=9, family="Helvetica"),
+        axis.text.x = element_text(angle=0, hjust=0.5, size=7, family="Helvetica"),
+        legend.text = element_text(size=10, family="Helvetica"),
+       legend.position = "none",
+       plot.title = element_text(hjust = 0.50, face="bold", size=8),
+       strip.background = element_blank(),
+       strip.text.x = element_blank(),
+       panel.grid = element_line(color="white"),
+       plot.tag = element_text(size = 10, family="Helvetica"),
+       plot.tag.position = c(0.08, 0.99),
+       panel.spacing = unit(0.8, "lines"))
+
+# Join (patchwork) plots together
+lo.ht.plot<- (plot.v17.lo / plot.v17.ht)
+lo.ht.plot
+
+
+# Yield affected by fertility treatment alone
+# Estimating marginal means for nitrogen timing
+lm.v17.emmean.2<- emmeans(lm.v17, ~Ntiming)
+lm.v17.emmean.data.2<- as.data.frame(lm.v17.emmean.2)
+lm.v17.emmean.2
+
+# Calculating pairwise contrasts
+contrast(lm.v17.emmean.2, alpha = 0.05, method = "pairwise")
+
+# Yield affected by stand age alone
+# Estimating marginal means for nitrogen timing
+lm.v17.emmean.st<- emmeans(lm.v17, ~stand.age)
+lm.v17.emmean.st.data<- as.data.frame(lm.v17.emmean.st)
+lm.v17.emmean.st.data
+
+# Calculating pairwise contrasts
+contrast(lm.v17.emmean.st, alpha = 0.05, method = "pairwise")
+
+#**
+#**
+#**
+#**
+#**
+
+# Get tabulated average and standard deviation values for Rosemount V17
+
+# Lodging
+rsmtv17.lodging.year<- rsmtv17 %>% group_by(Ntiming, stand.age) %>% summarise(
+  number_of_samples=n(),
+  sd.lodging=sd(Lodging),
+  mean.lodging=mean(Lodging)
+)
+
+# Subset out year 3 (missing data)
+rsmtv17.lodging.year<- subset(rsmtv17.lodging.year, stand.age!="3")
+
+# Height
+rsmtv17.height.year<- rsmtv17.long %>% group_by(Ntiming, stand.age) %>% 
+  summarise(
+    number_of_samples=n(),
+    sd.height=sd(ht.msmt),
+    mean.height=mean(ht.msmt)
+  )
+
+# Subset out year 3 (missing data)
+rsmtv17.height.year<- subset(rsmtv17.height.year, stand.age!="3")
+
+# Get significant differences between lodging and height data for Rosemount V-17
+
+# Lodging
+# Estimating marginal means
+ref_grid(lm.v17.lodging)
+lm.v17.emmean.lo<- emmeans(lm.v17.lodging, ~Ntiming|stand.age)
+lm.v17.emmean.lo.data<- as.data.frame(lm.v17.emmean.lo)
+lm.v17.emmean.lo.data
+
+# Calculating pairwise contrasts
+contrast(lm.v17.emmean.lo, alpha = 0.05, method = "pairwise")
+
+# Height
+ref_grid(lm.v17.height)
+lm.v17.emmean.ht<- emmeans(lm.v17.height, ~Ntiming|stand.age)
+lm.v17.emmean.ht.data<- as.data.frame(lm.v17.emmean.ht)
+lm.v17.emmean.ht.data
+
+# Calculating pairwise contrasts
+contrast(lm.v17.emmean.ht, alpha = 0.05, method = "pairwise")
+
+# Height interaction effect
+lm.v17.emmean.ht.int<- emmeans(lm.v17.height, ~Ntiming*stand.age)
+lm.v17.emmean.ht.int.data<- as.data.frame(lm.v17.emmean.ht.int)
+lm.v17.emmean.ht.int.data
+# Calculating pairwise contrasts
+contrast(lm.v17.emmean.ht.int, alpha = 0.05, method = "pairwise")
+# Significant interactions for the following:
+## control year 1 to control year 2. Spring 1 and control 2. Spring 1 to spring 2. 
+
+
+# Stand age
+
+# Lodging
+lm.v17.emmean.lo.a<- emmeans(lm.v17.lodging, ~stand.age)
+lm.v17.emmean.lo.a.data<- as.data.frame(lm.v17.emmean.lo.a)
+lm.v17.emmean.lo.a.data
+# Calculating pairwise contrasts
+contrast(lm.v17.emmean.lo.a, alpha = 0.05, method = "pairwise")
+
+# Height
+lm.v17.emmean.ht.a<- emmeans(lm.v17.height, ~stand.age)
+lm.v17.emmean.ht.a.data<- as.data.frame(lm.v17.emmean.ht.a)
+lm.v17.emmean.ht.a.data
+# Calculating pairwise contrasts
+contrast(lm.v17.emmean.ht.a, alpha = 0.05, method = "pairwise")
+
+```
+
+
+# Summary of core results and save high quality figure images
+```{r}
+# Yield contrasts
+contrast(lm.v17.emmean, alpha = 0.05, method = "pairwise")
+contrast(lm.v17.emmean.2, alpha = 0.05, method = "pairwise")
+
+# Lodging contrasts
+contrast(lm.v17.emmean.lo, alpha = 0.05, method = "pairwise")
+contrast(lm.v17.emmean.lo.a, alpha = 0.05, method = "pairwise")
+
+# Height contrasts
+contrast(lm.v17.emmean.ht, alpha = 0.05, method = "pairwise")
+contrast(lm.v17.emmean.ht.a, alpha = 0.05, method = "pairwise")
+contrast(lm.v17.emmean.ht.int, alpha = 0.05, method = "pairwise")
+
+# Residual plots (see heteroscedasticity and low sampling totals)
+plot(lm.v17, main="RSMT V-17 Residuals")
+par(mfrow=c(1,2))
+
+# Save high quality image figures to working directory
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/RSMT-V17_timing.tif",res = 600, width = 9, height = 6, units = "in", compression="lzw")
+plot.rsmtv17.avg
+#dev.off()
+
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/RSMT_V17_allyield.tif",res = 600, width = 9, height = 3, units = "in", compression="lzw")
+plot.V17.yield
+#dev.off()
+
+#tiff(filename="~/Desktop/Jungers lab/N-rate Timing/Figures/RSMT_V17_lo_ht.tif",res = 600, width = 8, height = 6, units = "in", compression="lzw")
+lo.ht.plot
+#dev.off()
+
+```
+
+
+
+

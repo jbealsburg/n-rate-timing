@@ -17,6 +17,9 @@
 # Since N rates were not consistent across sites, I may have luck rearrange data
 # into the below format
 
+# It seems dominic analyzed each site seperately, they have their own Rmarkdown
+# files. Dataframe are not consistent
+
 # dataframe we may need(
 #   site,
 #   year,
@@ -127,8 +130,41 @@ dat2 %>%
 dat2 %>% 
   filter(location =="RSMT V17")
 
+# Having trouble bringing datasets from each site together into a single
+# dataframe. It appears the treatment code at one site is different than the
+# treatment code at another site. The fertilizer treatments applied at the sites
+# were different and it's confusing
 
+# I am going to work through Dominic's markdown files to try to get clarity
 
+# STOP at 3pm sunday
+
+# START Just bringing in datasets from markdown files for hypothesis testing,
+# each site remains separate
+
+rsmtv17<- read.csv("Rosemount-V17.csv", header=T)
+rsmtv17 %>% 
+  rename_all(tolower) %>% 
+  dplyr::select(year,experiment,location,id,treatment,
+                napplied,ntiming,stand.age,block,
+                yield.kgperha
+  ) %>% 
+  mutate_all(factor) %>% 
+  mutate(yield.kgperha = as.numeric(yield.kgperha)) -> dat_v17
+
+r100<- read.csv("Rosemount_R100.csv")
+
+r100 %>% 
+  rename_all(tolower) %>% 
+  # colnames()
+  dplyr::select(year,experiment,location,id,treatment,
+                napplied,ntiming,stand.age,block,
+                ntiming_newlabel,
+                napplied_update,
+                yield.kgperha
+  ) %>% 
+  mutate_all(factor) %>% 
+  mutate(yield.kgperha = as.numeric(yield.kgperha)) -> dat_r100
 
 
 # Does iwg grain yield differ by timing? ----------------------------------
@@ -136,6 +172,86 @@ dat2 %>%
 # Ho: iwg grain yield does not differ when fertilizer is applied at different
 # times
 
+## v17
+dat_v17 %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin(aes(fill=stand.age)) +
+  labs(caption = "normally distributed within stand age")
+
+lm1 <- lm(yield.kgperha~stand.age*ntiming,
+          dat_v17)
+anova(lm1)
+# I ran mixed model, block didn't help and too many fixed effects made it rank
+# deficient. This is the way. 
+
+dat_v17 %>%
+  distinct(ntiming)
+  # distinct(stand.age)
+
+# we reject Ho that grain yield is similar between 1yr 2yr and 3yr stands
+
+# we reject Ho that grain yield is similar among timings (control, fall,
+# spring, split) HOWEVER, let's see if we filter out control from dataset
+  
+dat_v17 %>% 
+  filter(ntiming != "control") %>% 
+  lm(yield.kgperha~stand.age*ntiming,
+     .) %>% 
+  anova()
+
+# we cannot reject Ho that grain yield is similar among timings (fall, spring,
+# split)
+
+  
+## R100
+
+dat_r100 %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin(aes(fill=stand.age)) +
+  labs(caption = "normally distributed by stand age")
+
+dat_r100 %>% 
+  # colnames()
+  # lmer(
+  #   yield.kgperha~napplied_update*
+  #     ntiming+(1|block), 
+  #   data=.) # rank defficient, block useless
+  lm(
+    yield.kgperha~stand.age*ntiming,
+    .
+  ) %>% 
+  # summary()
+  anova()
+  # emmeans(~ntiming)
+
+# reject Ho that grain yield is similar among stand.age
+
+# cannot reject Ho that grain yield is similar among different timings
+
+
+## staples 
+
+# need to get excel document downloaded on work computer
+
+
+## Compiled
+dat_v17 %>% 
+  filter(ntiming != "control") %>% 
+  ggplot(aes(ntiming,yield.kgperha)) +
+  geom_jitter(width=.2,
+              aes(col=stand.age)) +
+  geom_boxplot(fill=NA,
+               width=.2) +
+  labs(caption = "v17")
+
+dat_r100 %>% 
+  filter(ntiming != "control") %>% 
+  ggplot(aes(ntiming,yield.kgperha)) +
+  geom_jitter(width=.2,
+              aes(col=stand.age)) +
+  geom_boxplot(fill=NA,
+               width=.2) +
+  labs(caption = "r100")
 
 
 # yld~timing*age*site
