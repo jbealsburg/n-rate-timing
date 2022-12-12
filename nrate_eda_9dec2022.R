@@ -453,6 +453,52 @@ dat_staples %>%
 
 # Do grain yields differ when fertilizer is split applied? ----------------
 
+dat_v17 %>% 
+  # glimpse()
+  mutate(split = str_detect(treatment,"split")) %>% 
+  # glimpse()
+  distinct(treatment)
+# no split treatments in V17
+
+
+dat_r100 %>% 
+  # glimpse()
+  filter(treatment != "control") %>% 
+  filter(treatment != "140 fall split" &
+           treatment != "60 fall" &
+           treatment != "60 spring") %>% # making split and not split even
+  mutate(split = str_detect(treatment,"split")) %>% 
+  # glimpse()
+  group_by(split) %>%
+  # distinct(treatment)  
+  # arrange(treatment)
+  # tally()
+  # lm(yield.kgperha~split,.) %>%
+  # anova() #lol, even less of an effect after balancing split and not split
+  ggplot(aes(split,yield.kgperha)) +
+  geom_jitter(width=.2,set.seed(314)) +
+  geom_boxplot(fill=NA,
+               width = .2) +
+  labs(caption = "r100
+       fail to reject Ho that yield is the same when fertilizer is split or not")
+
+
+dat_staples %>% 
+  # glimpse()
+  mutate(split = str_detect(treatment,"split")) %>% 
+  filter(treatment != "control") %>% 
+  distinct(treatment)
+  # glimpse()
+  group_by(split) %>%
+  tally()
+  # lm(yield.kgperha~split,.) %>% 
+  # anova()
+  ggplot(aes(split,yield.kgperha)) +
+  geom_jitter(width=.2,set.seed(314)) +
+  geom_boxplot(fill=NA,
+               width = .2) +
+  labs(caption = "staples
+       fail to reject Ho that yield is the same when fertilizer is split or not")
 
 
 
