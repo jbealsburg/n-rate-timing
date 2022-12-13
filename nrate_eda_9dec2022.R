@@ -6,49 +6,28 @@
 
 # Preliminary findings ----------------------------------------------------
 
-# I read the report by Dominic and was taken aback by complexity and quantity of
-# figures/tables. I think we need to simplify and find smaller datasets within
-# the larger dataset where treatments are consistent and data isn't missing. I
-# think this is a simple study that deserves a simple paper and then if there's
-# time and space we can expand with supplementary material and the more complex
-# aspects of the models dominic fitted and the limitations of the conclusions we
-# can draw from them. 
+# I read the report by Dominic and I felt we need to simplify the analysis and story. 
 
-# Since N rates were not consistent across sites, I may have luck rearrange data
-# into the below format
+# if there's time and space we can expand with supplementary material and the
+# more complex aspects of the models dominic fitted and the limitations of the
+# conclusions we can draw from them.
 
-# It seems dominic analyzed each site seperately, they have their own Rmarkdown
-# files. Dataframe are not consistent
-
-# dataframe we may need(
-#   site,
-#   year,
-#   standage,
-#   N_summer,
-#   N_spring,
-#   N_fall, 
-#   N_prior_to_harvest = (spring+summer of year + fall of previous year),
-#   split = yes or no,
-#   yield
-# ) 
-
-# does rate of N matter?
-# lm = yield~N_prior_to_harvest*standage
-
-# lm = yield ~ N_spring*N_summer*N_fall*standage
-
+# It seems dominic analyzed each site seperately and each have their own
+# Rmarkdown files. Dataframe naming is not consistent. Sometimes 0N plots are
+# "Unfertilized", sometimes "control", sometimes "ntiming_update", sometimes
+# "nupdate_timing".
 
 # comments ----------------------------------------------------------------
 
 # grain yields are ranging from 10-100 kg ha at each site, is this a conversion
 # error?
 
-# staples dataset makes the most sense, feels like strongest dataset 
+# staples dataset makes the most sense and feels like the strongest dataset 
 
 # r100 seems weird, unfertilized and low fertilized did best--was this due to
 # lodging?
 
-# V17 seems good, but maybe a little lighter on data
+# V17 seems good, but less responsive to treatments
 
 # key conclusions ---------------------------------------------------------
 
@@ -56,110 +35,17 @@
 # yields differ in plots that were not fertilized vs plots that were fertilized
 
 
-
-
 # import data -------------------------------------------------------------
 library(tidyverse)
+library(lme4)
+library(emmeans)
 
-# importing master dataset
-read.csv("data_yield.csv") -> dat
+# see "import_data_allsites.R"
 
-dat %>% 
-  # colnames()
-  rename_all(tolower) %>% 
-  # glimpse()
-  dplyr::select(
-    c(year,location,id,trt_code,treatment,threshed_grain_yield.kg.ha. )
-  ) %>% 
-  rename(yield = threshed_grain_yield.kg.ha. ) %>% 
-  mutate(treatment = tolower(treatment)) %>% 
-  filter(treatment != "")-> dat2 #dropping na for 2020 rsmt v17 plots that don't exist
+# import data separately from sites ---------------------------------------
 
-dat2 %>% 
-  group_by(treatment) %>% 
-  tally() %>% 
-  print(n=30)
-# may need a treatment dataframe we join to the site, plot info due to errors
-# uncovered so far with data. This may have been addressed in markdown however
-
-# continue with rough exploratory data analysis
-
-dat2 %>% 
-  # colnames()
-  # glimpse() %>% 
-  str_split(dat2$treatment)
-
-dat2 %>% 
-  filter(location != "RSMT V17") -> dat_site1
-
-# sites recieved summer applicaiton of 4 possible rates
-# then rate of 60 in either spring or fall
-
-dat_site1 %>% 
-  distinct(treatment)
-# ok so treatment is the total N
-# where 60 is applied in spring or fall
-
-str_split(dat_site1$treatment,
-          pattern = " ",
-          simplify = T) %>% 
-  as_tibble() %>% 
-  rename(rate_total = V1,
-         timing = V2,
-         method = V3) %>% 
-  mutate(rate_total = if_else(rate_total=="control",
-                        "0",
-                        rate_total),
-         timing = if_else(rate_total == "0",
-                          "none",
-                          timing)) %>% 
-  mutate(
-    rate_total = as.numeric(rate_total),
-    rate_summer = rate_total - 60) 
-# I keep seeing things I don't expect
-# need to review these methods more
-# why do some say split and others do not?
-
-
-str_split(dat2$treatment,
-          pattern = " ",
-          simplify = T) %>% 
-  as_tibble() %>% 
-  rename(rate = V1,
-         timing = V2,
-         method_fert = V3) %>% 
-  # glimpse()
-  mutate(rate = if_else(rate=="control",
-                        "0",
-                        rate),
-         timing = if_else(rate == "0",
-                          "none",
-                          timing)) %>% 
-  # distinct(timing)
-  filter(timing=="split")
-  # group_by(rate) %>% 
-  # tally()
-
-dat2 %>% 
-  # filter(treatment == "80 split")
-  filter(trt_code == "2")
-#what was timing of rosemount V17?
-# 80 split should have a timing of either fall or spring?
-
-dat2 %>% 
-  filter(location =="RSMT V17")
-
-# Having trouble bringing datasets from each site together into a single
-# dataframe. It appears the treatment code at one site is different than the
-# treatment code at another site. The fertilizer treatments applied at the sites
-# were different and it's confusing
-
-# I am going to work through Dominic's markdown files to try to get clarity
-
-# STOP at 3pm 11Dec
-
-# START Just bringing in datasets from markdown files for hypothesis testing,
-# each site remains separate
+# Bringing in datasets from Dominics markdown files for hypothesis testing, each
+# site remains separate
 
 rsmtv17<- read.csv("Rosemount-V17.csv", header=T)
 rsmtv17 %>% 
@@ -185,7 +71,7 @@ r100 %>%
   mutate_all(factor) %>% 
   mutate(yield.kgperha = as.numeric(yield.kgperha)) -> dat_r100
 
-# there are like multiple staples datasets
+# there are multiple staples datasets
 staples <- read.csv("Staples.csv")
 staples_split <- read.csv("Staples.Nsplit.analysis.only.csv")
 
@@ -223,7 +109,294 @@ staples_split  %>%
 # seems like dat_staples is most robust, but lacks summernrate factor
 
 
+
+# Combining across sites --------------------------------------------------
+
+# Since N rates and timing were not consistent across sites, analyzing sites
+# together is difficult. 
+
+dat_v17 %>% 
+  bind_rows(dat_r100) %>% 
+  bind_rows(dat_staples) %>% 
+  ggplot(aes(yield.kgperha)) +
+  geom_density(aes(col=location)) +
+  labs(caption = "sites yielded similarly enough to combine
+       V17 definately lower than the other 2")
+
+
+# Option 1: 3 sites, filtered  dataset
+
+# 3 timings: 0N, spring, fall
+
+# [0N, spring(staples+r100:60 spring, v17:80 spring), fall(staples+r100:60 fall,
+# v17:80 fall]
+
+dat_v17 %>% 
+  # distinct(treatment)
+  filter(treatment != "80 Split") %>% 
+  # colnames()
+  mutate(timing = if_else(
+    treatment == "80 Fall",
+    "fall",
+    if_else(
+      treatment == "80 Spring",
+      "spring",
+      "control"
+    )
+  )) -> dat_v17_tiny
+
+dat_r100 %>% 
+  # distinct(treatment)
+  filter(treatment == "60 spring" |
+           treatment == "60 fall" |
+           treatment == "control") %>% 
+  # distinct(treatment)
+  # colnames()
+  mutate(timing = if_else(
+    treatment == "60 fall",
+    "fall",
+    if_else(
+      treatment == "60 spring",
+      "spring",
+      "control"
+    )
+  )) -> dat_r100_tiny
+
+
+dat_staples %>% 
+  # distinct(treatment)
+  filter(treatment == "60 spring" |
+           treatment == "60 fall" |
+           treatment == "control") %>% 
+  # distinct(treatment)
+  # colnames()
+  mutate(timing = if_else(
+    treatment == "60 fall",
+    "fall",
+    if_else(
+      treatment == "60 spring",
+      "spring",
+      "control"
+    )
+  )) -> dat_staples_tiny
+
+
+# n=27 for each timing
+
+dat_v17_tiny %>% 
+  bind_rows(dat_r100_tiny) %>% 
+  bind_rows(dat_staples_tiny) %>% 
+  # group_by(timing) %>% 
+  # tally()
+  # filter(timing != "control") %>% 
+  # lm(yield.kgperha~timing*stand.age*location,.) %>%
+  # lmer(yield.kgperha ~ timing*stand.age +
+  #        (1|location),.) %>% 
+  # car::Anova()
+  # anova()
+  # emmeans(~timing*stand.age*location) %>% 
+  # multcomp::cld(Letters=letters,reverse=T)
+  # as_tibble()
+mutate(location = fct_relevel(location,
+                              "RSMT V17",
+                              .before = "Staples")) %>%
+  ggplot(aes(timing,yield.kgperha)) +
+  stat_summary() +
+  facet_wrap(~location*stand.age,
+             scales = "free") +
+  labs(caption = "staples shows what I expect...spring does best in yr 1, then fall for year 2 and 3
+  r100 continues to be weird, v17 doesn't show much of a timing difference")
+
+# CONCLUSION: Combining across sites shows no effect of fertilizer timing on
+# yield except that it's better than not fertilzing. Sites are different,
+# staples shows what I would expect (fertilize in spring for year 1 and then
+# fall for year 2 and 3), R100 makes no sense and V17 shows little difference in
+# timing. Could be explained by sandy staples soil being more responsive to
+# fertilizer and V17 just being less responsive. It's a solid conclusion.
+
+
+# Option 2: 2 sites, 18 treatments
+
+# R100 does not have data for stand.age == 1, so to keep it balanced we need to
+# remove the stand.age == 1 data from Staples. n=6 per treatment per site
+
+dat_r100 %>% 
+  bind_rows(dat_staples) %>% 
+  # drop_na(yield.kgperha) %>%
+  # distinct(stand.age)
+  filter(stand.age != "1") %>% #R100 does not have 1st year stand age, so remove from stapes
+  lm(
+    yield.kgperha~treatment*stand.age*location,
+    .) %>%
+  # anova()
+  emmeans(
+    # ~treatment:stand.age
+    ~treatment*location
+  ) %>%
+  multcomp::cld()
+# ggplot(aes(location,yield.kgperha,
+#            col=treatment,
+#            fill = treatment)) +
+# stat_summary(geom = "bar",
+#              position = position_dodge(.6),
+#              width=.6,
+#              col=1)
+
+# fall applied fertilizer is better in Staples (because we removed year 1 data)
+# and the control and low fertiliy 60N treatments are best in R100 because R100
+# data is weird. 
+
+# CONCLUSION: Not a good option combining R100 with Staples. We need to cut out
+# stand.age==1 data from staples to make comparison and the R100 data just adds
+# more noise than insight...unless the insight is that kernza yield response to
+# N is noisy--which will need to be discussed, but missing that first stand age
+# data is devastating to the story and the control yielding near highest in R100
+# makes me think either N was not limiting in R100, fertility treatments were
+# incorrectly applied, N caused a penalty due to drought. The impact of N on
+# kernza stands in year 2 and 3 is an angle, but we don't want to analyze with
+# treatment as a factor with 18 levels but by grouping by timing or rate or split
+
+
+# START - TIMING AND RATE ON 2-3 YR OLD STANDS FOR GRAIN YIELD
+# may need to add in columns to R100
+# nappliedupdate
+# ntiming_Actual
+
+# dat_r100 %>% 
+#   bind_rows(dat_staples) %>% 
+#   # colnames()
+#   group_by(location,updatednrate) %>% 
+#   tally()
+#   filter(stand.age != "1") %>% #R100 does not have 1st year stand age, so remove from stapes
+#   lm(
+#     yield.kgperha~updatednrate,
+#     # yield.kgperha~ntiming_actual,
+#     .) %>%
+#   anova()
+#   emmeans(
+#     # ~treatment:stand.age
+#     ~ntiming_actual
+#   ) %>%
+#   multcomp::cld()
+# END - TIMING AND RATE ON 2-3 YR OLD STANDS FOR GRAIN YIELD
+
+
+
+# Option 3: Analyze all sites seperately
+
+# This is what Dominic did. It seems R100 data showed no response to N, whereas
+# Staples and V17 did.
+
+
+# Option 4: Generate new dataset 
+
+# The first solution is making a vector that is N applied prior to grain
+# harvest, which dominic did for staples "updatednrate" and r100
+# "napplied_update". I added an "updatednrate" column to V17 and made a column
+# in r100 that's updatednrate.
+
+dat_r100 %>% 
+  mutate(updatednrate = napplied_update) -> dat_r100
+
+dat_v17 %>% 
+  # View()
+  # colnames()
+  # distinct(treatment)
+  mutate(napplied = as.character(napplied)) %>% 
+  mutate(updatednrate = if_else(
+    treatment == "80 Fall" & stand.age =="1",
+    "0",
+    napplied
+  )) %>% 
+  mutate(updatednrate = if_else(
+    treatment == "80 Split" & stand.age == "1",
+    "40",
+    napplied
+  )) -> dat_v17
+
+# you can fit a nice curve to the data
+
+dat_r100 %>% 
+  bind_rows(dat_v17) %>% 
+  bind_rows(dat_staples) %>% 
+  # lm(yield.kgperha~updatednrate*stand.age,.) %>%
+  # anova()
+  ggplot(aes(
+    as.numeric(updatednrate),
+    yield.kgperha,
+    col=stand.age,
+    group=stand.age,
+    shape = location
+  )) +
+  geom_point() +
+  geom_smooth() +
+  labs(caption = "V17 messes up standage=1 curve")
+
+# Let's take out V17
+
+dat_r100 %>% 
+  # bind_rows(dat_v17) %>% 
+  bind_rows(dat_staples) %>% 
+  # lm(yield.kgperha~updatednrate*stand.age,.) %>%
+  # anova()
+  ggplot(aes(
+    as.numeric(updatednrate),
+    yield.kgperha,
+    col=stand.age,
+    group=stand.age,
+    shape = location
+  )) +
+  geom_point() +
+  geom_smooth() +
+  labs(caption = "Pretty nice curve without V17")
+
+# seperate by site
+
+dat_r100 %>% 
+  bind_rows(dat_v17) %>% 
+  bind_rows(dat_staples) %>% 
+  # lm(yield.kgperha~updatednrate*stand.age,.) %>%
+  # anova()
+  # filter(location == "RSMT V17") %>% 
+  ggplot(aes(
+    as.numeric(updatednrate),
+    yield.kgperha,
+    col=stand.age,
+    group=stand.age,
+    shape = location
+  )) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~location) +
+  labs(caption = "yield~nrate is different among sites, can't combine
+       note V17 only has 3 n rates so loess nor quadratic cannot be fit")
+
+
+# but this fails to take into account timing. We null hypothesis test for the
+# effect of timing on yield (failed to reject Ho that timing didn't matter), but
+# we could just build it into the dataframe
+
+
+
+# I may have luck rearrange data into the below format
+
+# dataframe we may need(
+#   site,
+#   year,
+#   standage,
+#   N_summer,
+#   N_spring,
+#   N_fall, 
+#   N_prior_to_harvest = (spring+summer of year + fall of previous year),
+#   split = yes or no,
+#   yield
+# ) 
+
+
+
+
   
+
 # Does iwg grain yield differ by timing? ----------------------------------
 
 # Ho: iwg grain yield does not differ when fertilizer is applied at different
@@ -470,10 +643,10 @@ dat_staples %>%
 
 # running all code in "Staples.Rmd" to show figures dominic produced
 
-gg1
-gg2 + labs(caption = "staples")
-gg3 + labs(caption = "staples")
-gg4 + labs(caption = "staples")
+# gg1
+# gg2 + labs(caption = "staples")
+# gg3 + labs(caption = "staples")
+# gg4 + labs(caption = "staples")
 
 
 # Applied research question addressed: "I'd prefer to fertilize in fall vs.
@@ -564,7 +737,7 @@ dat_r100 %>%
            treatment != "60 spring") %>% # making split and not split even
   mutate(split = str_detect(treatment,"split")) %>% 
   # glimpse()
-  group_by(split) %>%
+  # group_by(split) %>%
   # distinct(treatment)  
   # arrange(treatment)
   # tally()
@@ -582,10 +755,10 @@ dat_staples %>%
   # glimpse()
   mutate(split = str_detect(treatment,"split")) %>% 
   filter(treatment != "control") %>% 
-  distinct(treatment)
+  # distinct(treatment)
   # glimpse()
-  group_by(split) %>%
-  tally()
+  # group_by(split) %>%
+  # tally()
   # lm(yield.kgperha~split,.) %>% 
   # anova()
   ggplot(aes(split,yield.kgperha)) +
