@@ -185,11 +185,9 @@ r100 %>%
   mutate_all(factor) %>% 
   mutate(yield.kgperha = as.numeric(yield.kgperha)) -> dat_r100
 
-# there are like 3 staples datasets...
+# there are like multiple staples datasets
 staples <- read.csv("Staples.csv")
 staples_split <- read.csv("Staples.Nsplit.analysis.only.csv")
-staples.fallspringonly<- subset(staples.cumulative.dataset, 
-                                Ntiming %in% c("Unfertilized","Fall","Spring"))
 
 staples %>% 
   rename_all(tolower) %>% 
@@ -373,10 +371,104 @@ dat_staples %>%
 
 # Ho: Grain yield does not differ among different fertilizer rates
 
-# yld~rate*age*site subsetted within timing?
-# yld~timing*rate*age*site
+# first compare cumulative yield as a function of cumulative fertilizer
 
-# running all code in "Staples.Rmd"
+# updatedncumsum and cumulative.grain.yield were only used in figures and no
+# metadata exists for how they were calculated
+
+## staples
+dat_staples %>% 
+  # View()
+  # colnames()
+  group_by(id,updatednrate) %>% 
+  summarise(cumyield = cumsum(yield.kgperha)) %>% 
+  # lm(cumyield~updatednrate,.) %>% 
+  # anova()
+  # emmeans::emmeans(~updatednrate)
+  ggplot(aes(
+    as.numeric(updatednrate),
+    cumyield
+  )) +
+  geom_point() +
+  # geom_smooth() # soooo quadratic omg
+  geom_smooth(
+    method = "lm",
+    formula = y~poly(x,2),
+    se=F
+  ) +
+  labs(caption = "staples
+       reject Ho that yields are similar among N applied rates")
+
+dat_v17 %>% 
+  # colnames()
+  # distinct(napplied) %>%
+  group_by(id,napplied) %>% 
+  summarise(cumyield = cumsum(yield.kgperha)) %>% 
+  lm(cumyield~napplied,.) %>%
+  anova()
+# not a range of fertility levels, but we reject Ho that yields are similar
+# among the 2 fertility levels (0N and 80N)
+
+
+dat_r100 %>% 
+  # colnames()
+  group_by(id,napplied_update) %>% 
+  summarise(cumyield = cumsum(yield.kgperha)) %>% 
+  # lm(cumyield~napplied_update,.) %>%
+  # anova()
+  ggplot(aes(
+    as.numeric(napplied_update),
+    cumyield
+  )) +
+  geom_point() +
+  geom_smooth() +
+  labs(caption = "R100
+       fail to reject Ho that grain yield is similar among fertilizer rates")
+
+# Conclusion: Cumulative yields can be calculated for a given plot over the
+# course of the experiment. Plots differ in the amount of N applied. Our Ho is
+# that yields do not differ among plots with different N rates. At V17, we had
+# two N rates (0 and 80N), we reject Ho that yields were similar among these two
+# rates. At staples, we reject the Ho that yields are similar among multiple
+# rates and find a very strong quadratic relationship between N rate and yield.
+# At R100, we fail to reject Ho
+
+
+# Compare yield response of n applied prior to harvest (we can assume
+# timing does not matter from previous analysis)
+
+dat_staples %>% 
+  # colnames()
+  ggplot(aes(
+    as.numeric(updatednrate),
+    yield.kgperha
+  )) +
+  geom_point(aes(col=stand.age)) +
+  geom_smooth(aes(group = stand.age,
+                  col=stand.age),
+              # method = "lm",
+              # formula = y~poly(x,2)
+              )
+dat_staples %>% 
+  lm(
+  yield.kgperha~poly(as.numeric(updatednrate),2)*stand.age,
+    # yield.kgperha~as.numeric(updatednrate)*stand.age,
+  .) %>%
+  anova()
+  # emmeans::emmeans(~poly(as.numeric(updatednrate),2)*stand.age)
+# we reject Ho that grain yields are similar among nrate and stand age, but
+# there is an interaction and this effect is not consistent. It seems
+# approximately quadratic in all years, but in year 2 there is more of a decline
+# at higher N rates which is not true in the other years
+
+# V17
+# only 2 rates, cannot make this comparison
+
+# R100
+# no difference among rates, let alone will fitting a curve be possible.
+
+
+# running all code in "Staples.Rmd" to show figures dominic produced
 
 gg1
 gg2 + labs(caption = "staples")
@@ -389,10 +481,13 @@ gg4 + labs(caption = "staples")
 # apply more fertilizer in the fall to achieve the same yield response as a
 # spring application?
 
+# ANSWER: Previously we were unable to reject the Ho that timing of fertilizer
+# does not impact yield. With timing being equal, yields seem to be highest
+# around 5-7 nrate. This is most important in the first and second year, but
+# overfertilizing in the second year can result in lower yields
 
 
 # IF iwg grain yields differ by N rate, how do we model? ------------------
-
 
 # 4 models: no effect, linear, quadratic, quadratic planar
 
