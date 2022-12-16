@@ -214,6 +214,31 @@ mutate(location = fct_relevel(location,
 # timing. Could be explained by sandy staples soil being more responsive to
 # fertilizer and V17 just being less responsive. It's a solid conclusion.
 
+# BUT WE NEED TO CHANGE HOW WE CATEGORIZE TIMING
+# year1 yields for fall fertilizer is no fertilizer
+
+dat_v17_tiny %>% 
+  bind_rows(dat_r100_tiny) %>% 
+  bind_rows(dat_staples_tiny) %>%
+  mutate(
+    timing_improved = if_else(
+      timing=="fall" & stand.age == "1",
+      "control",
+      timing
+    ),
+    .after=timing
+  ) %>% 
+  View()
+
+mutate(timing = if_else(
+  treatment == "60 fall",
+  "fall",
+  if_else(
+    treatment == "60 spring",
+    "spring",
+    "control"
+  )
+
 
 # Option 2: 2 sites, 18 treatments
 

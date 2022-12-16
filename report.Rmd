@@ -5,6 +5,25 @@ editor_options:
   chunk_output_type: console
 ---
 
+```{r, echo=F, message=F}
+knitr::opts_chunk$set(echo = F,message = F, include = F)
+
+# echo = display code
+# message = display code message
+# include = include chunk outputs in doc output
+
+library(multcomp)
+
+```
+
+
+# Questions
+
+Were the fall treatments applied right after planting or the following year?\
+Are there plots that received nitrogen in the fall prior to their first harvest?
+
+Based on data, it appears the plots with a fall treatment applied N in fall for Staples. This complicates how we analyze timing and the reason we have in interaction at staples
+
 # Datasets
 
 ```{r, include=F}
@@ -79,6 +98,8 @@ dat_v17 %>%
 
 What nitrogen rate results in highest grain yield?
 
+As stand age increases, does optimal nitrogen rate increase?
+
 **Dominic's findings**
 
 R100: timing does not matter, 0-60N maximizes yield
@@ -106,10 +127,22 @@ dat_r100 %>%
 
 ```
 
-```{r}
+## Dat_timing
 
-dat_timing %>% 
-  distinct(location)
+```{r}
+## Mixed effect models don't work here
+# Block explains nothing and locations are too few to treat as random
+  
+# lmer(
+#   yield.kgperha~timing*stand.age+
+#     (1|location/block),
+#   dat_timing
+# ) %>% 
+#   car::Anova()
+
+
+# dat_timing %>% 
+  # distinct(location)
   lm(
     # yield.kgperha~timing*location*stand.age,
     yield.kgperha~timing*stand.age,
@@ -118,11 +151,66 @@ dat_timing %>%
     # .
   ) %>% 
   # summary()
-  anova()
+  # anova()
+  emmeans(~timing*stand.age) %>% 
+  cld(Letters=letters, reverse=T)
 
 # 3-way interaction with location and stand.age
 # staples interaction between timing and stand age
-# 
+  
+# interaction
+dat_timing %>% 
+  filter(location=="Staples") %>%
+  # filter(location=="RSMT V17") %>% 
+  ggplot(aes(timing,yield.kgperha,
+             group = stand.age,
+             col=stand.age)) +
+  stat_summary(geom = "line") 
+
+# This interaction is due to year1 fall essentially being a control
+
+dat_timing %>% 
+  filter(stand.age != "1" | timing != "fall") %>% 
+  filter(location == "Staples") %>% 
+  # ggplot(aes(timing,yield.kgperha,
+  #            group = stand.age,
+  #            color=stand.age)) +
+  # stat_summary(geom = "line")
+  lm(
+    yield.kgperha~timing*stand.age,
+    .
+  ) %>% 
+  anova()
 
 
 ```
+
++-------------+-------------+---------------------------+------------------+
+| dataset     | location    | fixed effects             | p-value          |
++=============+=============+===========================+==================+
+| dat_timing  | combined    | timing:location:stand.age | \*\*             |
++-------------+-------------+---------------------------+------------------+
+| dat_timing  | staples     | timing                    | \*\*             |
++-------------+-------------+---------------------------+------------------+
+| dat_timing  | staples     | stand.age                 | \*\*\*           |
++-------------+-------------+---------------------------+------------------+
+| dat_timing  | staples     | timing\*stand.age         | \*               |
++-------------+-------------+---------------------------+------------------+
+| dat_timing  | v17         | timing                    | \*\*\*           |
++-------------+-------------+---------------------------+------------------+
+| dat_timing  | v17         | stand.age                 | \*\*\*           |
++-------------+-------------+---------------------------+------------------+
+| dat_timing  | v17         | timing\*stand.age         |                  |
++-------------+-------------+---------------------------+------------------+
+
+The effects of timing and stand age were not consistent across sites, and required each site be analyzed separately.
+
+*Yields are similar regardless of fertilization*
+
+Staples: there is an interaction between the effect of fertilization and stand.age.
+
+R100:
+
+Yields are similar regardless of timing (treatment != control)
+
+Yields are similar regardless of stand.age or location
