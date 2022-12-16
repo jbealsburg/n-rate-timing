@@ -227,17 +227,7 @@ dat_v17_tiny %>%
       timing
     ),
     .after=timing
-  ) %>% 
-  View()
-
-mutate(timing = if_else(
-  treatment == "60 fall",
-  "fall",
-  if_else(
-    treatment == "60 spring",
-    "spring",
-    "control"
-  )
+  ) 
 
 
 # Option 2: 2 sites, 18 treatments
