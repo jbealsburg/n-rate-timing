@@ -1,0 +1,128 @@
+---
+title: n-rate timing report
+date: "`r Sys.Date()`"
+editor_options: 
+  chunk_output_type: console
+---
+
+# Datasets
+
+```{r, include=F}
+
+source("nrate_eda_9dec2022.R")
+dat_staples %>% 
+  # group_by(stand.age) %>% 
+  group_by(treatment) %>% 
+  summarise(n=n())
+dat_r100%>% 
+  # group_by(stand.age) %>% 
+  group_by(treatment) %>% 
+  summarise(n=n())
+dat_v17 %>% 
+  # group_by(stand.age) %>% 
+  group_by(treatment) %>% 
+  summarise(n=n())
+
+```
+
++----------+------------+----------+---------------------------------------+---------+
+| location | stand.ages | n        | treatments                            | n       |
++==========+============+==========+=======================================+=========+
+| Staples  | 1,2,3      | 54,54,54 | n=18, same as r100                    | 9       |
++----------+------------+----------+---------------------------------------+---------+
+| R100     | 2,3        | 54,54    | n=18; same as staples                 | 6       |
++----------+------------+----------+---------------------------------------+---------+
+| V17      | 1,2,3      | 16,16,16 | control, 80 fall, 80 split, 80 spring | 12      |
++----------+------------+----------+---------------------------------------+---------+
+
++---------------------------+------------+---------------+------------+---------------------------------+---------------------------------+
+| balanced datasets         |            | locations     | stand.ages | treatments                      | model                           |
++===========================+============+===============+============+=================================+=================================+
+| timing dataset            | dat_timing | Staples, V17  | 1,2,3      | control, spring only, fall only | y\~treatmentXlocationXstand.age |
++---------------------------+------------+---------------+------------+---------------------------------+---------------------------------+
+| nrate dataset             | dat_nrate  | Staples       | 1,2,3      | all                             | y\~treatmentXlocationXstand.age |
++---------------------------+------------+---------------+------------+---------------------------------+---------------------------------+
+| nrate older stand dataset | dat_old    | Staples, R100 | 2,3        | all                             | y\~treatmentXlocationXstand.age |
++---------------------------+------------+---------------+------------+---------------------------------+---------------------------------+
+
++-------------------+----------------------------------------------------------------------------------------------+
+| balanced datasets | testable hypotheses                                                                          |
++===================+==============================================================================================+
+| dat_timing        | Yields are similar regardless of fertilization                                               |
+|                   |                                                                                              |
+|                   | Yields are similar regardless of timing (treatment != control)                               |
+|                   |                                                                                              |
+|                   | Yields are similar regardless of stand.age or location                                       |
++-------------------+----------------------------------------------------------------------------------------------+
+| dat_nrate         | yields are similar regardless of fertilization                                               |
+|                   |                                                                                              |
+|                   | yields are similar regardless of timing\*rate (treatment != control)                         |
+|                   |                                                                                              |
+|                   | Yields are similar regardless of stand.age or location                                       |
+|                   |                                                                                              |
+|                   | Yields are similar regardless of the amount of N applied prior to harvest                    |
+|                   |                                                                                              |
+|                   | Yield response to N is best modeled as no effect vs a linear, quadratic and quadratic planar |
++-------------------+----------------------------------------------------------------------------------------------+
+| dat_old           | Yields in older stands are similar regardless of fertilization                               |
+|                   |                                                                                              |
+|                   | yields in older stands are similar regardless of timing (treatment != control)               |
+|                   |                                                                                              |
+|                   | yields in older stands are similar regardless of timing\*rate (treatment != control)         |
+|                   |                                                                                              |
+|                   | yields in older stands are similar regardless of the amount of N applied prior to harvest    |
+|                   |                                                                                              |
+|                   | yields are similar regardless of stand age and location                                      |
++-------------------+----------------------------------------------------------------------------------------------+
+
+**Additional questions/framings**
+
+What nitrogen rate results in highest grain yield?
+
+**Dominic's findings**
+
+R100: timing does not matter, 0-60N maximizes yield
+
+Stapes: applying N in fall near 80 lb A is best
+
+V17: fall application is best (including split)
+
+**Jesse's findings**
+
+R100: does not make a lot of sense
+
+# Analysis
+
+```{r}
+
+dat_v17_tiny %>% 
+  bind_rows(dat_staples_tiny) -> dat_timing
+
+dat_staples -> dat_nrate
+
+dat_r100 %>% 
+  bind_rows(dat_staples) %>% 
+  filter(stand.age != "1") -> dat_old
+
+```
+
+```{r}
+
+dat_timing %>% 
+  distinct(location)
+  lm(
+    # yield.kgperha~timing*location*stand.age,
+    yield.kgperha~timing*stand.age,
+    filter(dat_timing,location=="Staples")
+    # filter(dat_timing,location=="RSMT V17")
+    # .
+  ) %>% 
+  # summary()
+  anova()
+
+# 3-way interaction with location and stand.age
+# staples interaction between timing and stand age
+# 
+
+
+```
