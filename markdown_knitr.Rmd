@@ -1,12 +1,21 @@
 ---
 title: |
-  **Intermediate wheatgrass response to nitrogen fertilizer rates and timing**
+  **Intermediate wheatgrass response to nitrogen fertilizer rate and timing**
 author:
 - Jesse Puka-Beals
 - Dominic Christensen
 - Craig Scheaffer
 - Jacob Jungers
+
 date: "`r format(Sys.time(), '%B %d, %Y')`"
+
+keywords:
+  - key
+  - dictionary
+  - word
+
+abstract: Wheatgrass is a new perennial grain crop in Minnesota. We established wheatgrass stands at 3 locations and then applied different rates of nitrogen fertilizer at different times in the growing season. We recorded grain yield, height and lodging over 3 years. Wheatgrass yields ranged from 1 to 130 kg ha-1 yr-1. When fertilized, yields were 81% greater. The extent to which yields differed among the rates and timings of N fertilizer applied was not consistent across sites nor stand age. The variability inherent in estimating yields from kernza stands with small quadrats makes drawing conclusions difficult without many sites and years. We hope the dataset and confidence intervals presented here can be useful in future research in understanding the role of N in provisioning more grain yield from this new perennial crop in Minnesota. 
+
 output:
   # word_document: 
   pdf_document:
@@ -28,31 +37,59 @@ header-includes:
 - \usepackage{afterpage}
 - \usepackage{siunitx}
 - \usepackage{amsmath}
-keywords: Agricultural intensification, Bumble bees, bee decline, agroecosystems
-# bibliography: ./library.bib
-# csl: ./nature-conservation.csl
-abstract: hello this is a test
+# bibliography: # csl: 
+
+
+editor_options: 
+  chunk_output_type: console
 ---
 
-# Introduction
+```{r, include=F}
+knitr::opts_chunk$set(include = F)
 
+```
+
+
+
+```{r}
+source("nrate_eda_9dec2022.R")
+dat_v17 %>% 
+  bind_rows(dat_r100) %>% 
+  bind_rows(dat_staples) %>% 
+  # group_by(ntiming) %>%
+  filter(ntiming == "control" | ntiming == "Unfertilized") %>%
+  # filter(ntiming != "control" | ntiming != "Unfertilized") %>%
+  summarise(m=mean(na.omit(yield.kgperha)),
+            max = max(na.omit(yield.kgperha)),
+            min = min(na.omit(yield.kgperha)),
+            n=n())
+
+```
+
+# Introduction
 
 # Methods
 
 Split application treatments received 20, 40, 60, or 80 lb ac-1 of nitrogen in the summer month of May or June and all received 60 lb ac-1 of nitrogen in either the fall or spring. Rosemount V-17 did not contain different nitrogen application rates, since all fertility treatments received 80 total lb ac-1. The split treatment at Rosemount V-17 was split in the fall and spring and did not receive a summer application of fertilizer which Rosemount R-100 and Staples did. Grain yield data was unavailable for the first stand age at Rosemount R-100. Lodging and height data are missing from some stand ages at research sites.
 
-# Results and discussion 
+# Results and discussion
 
-## R100 
+## R100
+
 ### Results
-The only predictor variable explaining a significant portion of the variance in intermediate wheatgrass grain yield was the age of the stand (p<2e-16) (Table 1) and lodging as a covariate (p<0.0001) (Figure 2; Table 1). There was an average grain yield loss of 472 kg ha-1 in the third age of the stand compared to the second (p<0.0001). Each additional increase in lodging score resulted in a reduction of 19 kg ha-1 of grain yield in the third age of the stand, which was a 7.7 % decrease in grain yield when lodging increased from 0 to 1 and a 25% decrease in grain yield when lodging increased from 9 to 10 (Figure 2). Modeling nitrogen application rate as a quadratic polynomial predictor did not explain grain yield better than a simple linear function. We found little evidence that differences in nitrogen rate and timing influence yield, at least within the second and third age of the stand at this research site (p>0.05) (Figure 1; Table 1). Lodging increased on average when fertilizer was applied (+7.4, p<0.001) (Table 2; Figure 4). Height was affected by the interaction between nitrogen application rate and timing (Table 1), with some nitrogen timings showing a reduction in plant height with increasing nitrogen rates, and other nitrogen timing treatments that did not change with rate (Figure 5). For instance, when fertilizer was added in the fall, the plant height stayed similar for all application rates, but when fertilizer was added for a fall split or spring application then plant height was lower (Table 1–3; Figure 5). Plants were taller in unfertilized conditions (156 cm) and when applying fertilizer in the fall (154 cm), than in spring and spring split applied fertilizer (146 cm) (p<0.05) (Table 2; Figure 5). 
 
-### Discussion: 
-There was some evidence a spline nitrogen application rate predictor variable may fit the yield data better than a linear regression model, suggesting a peak in yield when nitrogen was applied between 0–60 lb ac-1 which would have been less impacted by lodging; however, a spline function was not selected because yield data in the first age of the stand was not available, which limited interpolation. The evidence for an optimal rate is also shown in Table 3 in that when 40 lb ac-1 of nitrogen was applied, then the grain yield was 703 kg ha-1. Rosemount R-100 yields were significantly impacted by lodging and the plants receiving the lowest fertilizer rate (60 lb ac-1) were still impacted by lodging (Table 3). There are additionally some potential concerns of heteroscedasticity when modeling the yield data for Rosemount R-100 (Figure 3). The range of yields when applying fertilizer was much greater than the unfertilized control in both ages of the stand (Figure 3), and the spring split nitrogen timing treatment in the second age of the stand had a range of 244–876 kg ha-1. Despite the large yield ranges, no fertility timing treatment tested at this research site improved yield over the unfertilized control (Figure 1). Since applying fertilizer did not improve yields at this research site, growers should carefully consider fertilizer rate and its impact on lodging. Data from other research sites in this study have shown grain yield increases when fertilizing intermediate wheatgrass. Additionally, since a superior nitrogen timing treatment was not found this allows for greater grower flexibility applying nutrients when prices are low, at their convenience, or based on rotational cropping systems factors. 
-
-## Staples
-### Results:
-Average grain yield was similar between the first two stand ages (p=0.43), but less for the third. Year one and two average grain yields were 689 and 529 kg ha-1, respectively and the third-year average was 258 kg ha-1 (p=0.0002 and 0.0122, respectively). The significant interaction between stand age and nitrogen timing is largely attributable to the unfertilized (fall) applied nitrogen timing treatment (that treatment did not receive fertilizer the first year), which had the lowest average yield among treatments receiving fertilizer in the first year (458 kg ha-1) but was one of the highest in the second year (710 kg ha-1) (Figure 8 & 9, Table 5–6). There was no optimal nitrogen timing treatment for grain yield over the age of the stand (Figure 8, Table 6), although the fall split application receiving only a split application in the first year was better than a spring split treatment (Figure 6 & 8). The influence of different nitrogen application rates on grain yield was most simply described as a quadratic polynomial function (Figure 7). Maximum grain yield values for nitrogen application rates among stand ages are shown in Figure 7 and average grain yield for each rate are tabulated and shown (Table 7). To maximize grain yields, the quadratic polynomial model predicted a fertilization rate of 100, 80, and 100 (lb ac-1) for stand ages 1, 2, and 3, respectively (Figure 7). Fertilizing at a higher rate increased yields more dramatically in the first and second ages of the stand, but those rates generally yielded less, relative to lower nitrogen rates by the third age of the stand (Figure 9). Fertilization rate was generally less of a factor towards improving grain yield by the third age of the stand (p=0.051) (Table 4–7 , Figure 7). Lodging was significantly greater in the second age of the stand than the third (+0.61, p=0.002), since no lodging occurred in the third year. The unfertilized control lodged more than the average of the fertilized treatments in the second year of the stand age (+1.8, p<0.05) (Table 6). Plant height was significantly shorter in the third age of the stand than the second (-32, p<0.0001) (Table 6–7). 
+The only predictor variable explaining a significant portion of the variance in intermediate wheatgrass grain yield was the age of the stand (p\<2e-16) (Table 1) and lodging as a covariate (p\<0.0001) (Figure 2; Table 1). There was an average grain yield loss of 472 kg ha-1 in the third age of the stand compared to the second (p\<0.0001). Each additional increase in lodging score resulted in a reduction of 19 kg ha-1 of grain yield in the third age of the stand, which was a 7.7 % decrease in grain yield when lodging increased from 0 to 1 and a 25% decrease in grain yield when lodging increased from 9 to 10 (Figure 2). Modeling nitrogen application rate as a quadratic polynomial predictor did not explain grain yield better than a simple linear function. We found little evidence that differences in nitrogen rate and timing influence yield, at least within the second and third age of the stand at this research site (p\>0.05) (Figure 1; Table 1). Lodging increased on average when fertilizer was applied (+7.4, p\<0.001) (Table 2; Figure 4). Height was affected by the interaction between nitrogen application rate and timing (Table 1), with some nitrogen timings showing a reduction in plant height with increasing nitrogen rates, and other nitrogen timing treatments that did not change with rate (Figure 5). For instance, when fertilizer was added in the fall, the plant height stayed similar for all application rates, but when fertilizer was added for a fall split or spring application then plant height was lower (Table 1--3; Figure 5). Plants were taller in unfertilized conditions (156 cm) and when applying fertilizer in the fall (154 cm), than in spring and spring split applied fertilizer (146 cm) (p\<0.05) (Table 2; Figure 5).
 
 ### Discussion:
+
+There was some evidence a spline nitrogen application rate predictor variable may fit the yield data better than a linear regression model, suggesting a peak in yield when nitrogen was applied between 0--60 lb ac-1 which would have been less impacted by lodging; however, a spline function was not selected because yield data in the first age of the stand was not available, which limited interpolation. The evidence for an optimal rate is also shown in Table 3 in that when 40 lb ac-1 of nitrogen was applied, then the grain yield was 703 kg ha-1. Rosemount R-100 yields were significantly impacted by lodging and the plants receiving the lowest fertilizer rate (60 lb ac-1) were still impacted by lodging (Table 3). There are additionally some potential concerns of heteroscedasticity when modeling the yield data for Rosemount R-100 (Figure 3). The range of yields when applying fertilizer was much greater than the unfertilized control in both ages of the stand (Figure 3), and the spring split nitrogen timing treatment in the second age of the stand had a range of 244--876 kg ha-1. Despite the large yield ranges, no fertility timing treatment tested at this research site improved yield over the unfertilized control (Figure 1). Since applying fertilizer did not improve yields at this research site, growers should carefully consider fertilizer rate and its impact on lodging. Data from other research sites in this study have shown grain yield increases when fertilizing intermediate wheatgrass. Additionally, since a superior nitrogen timing treatment was not found this allows for greater grower flexibility applying nutrients when prices are low, at their convenience, or based on rotational cropping systems factors.
+
+## Staples
+
+### Results:
+
+Average grain yield was similar between the first two stand ages (p=0.43), but less for the third. Year one and two average grain yields were 689 and 529 kg ha-1, respectively and the third-year average was 258 kg ha-1 (p=0.0002 and 0.0122, respectively). The significant interaction between stand age and nitrogen timing is largely attributable to the unfertilized (fall) applied nitrogen timing treatment (that treatment did not receive fertilizer the first year), which had the lowest average yield among treatments receiving fertilizer in the first year (458 kg ha-1) but was one of the highest in the second year (710 kg ha-1) (Figure 8 & 9, Table 5--6). There was no optimal nitrogen timing treatment for grain yield over the age of the stand (Figure 8, Table 6), although the fall split application receiving only a split application in the first year was better than a spring split treatment (Figure 6 & 8). The influence of different nitrogen application rates on grain yield was most simply described as a quadratic polynomial function (Figure 7). Maximum grain yield values for nitrogen application rates among stand ages are shown in Figure 7 and average grain yield for each rate are tabulated and shown (Table 7). To maximize grain yields, the quadratic polynomial model predicted a fertilization rate of 100, 80, and 100 (lb ac-1) for stand ages 1, 2, and 3, respectively (Figure 7). Fertilizing at a higher rate increased yields more dramatically in the first and second ages of the stand, but those rates generally yielded less, relative to lower nitrogen rates by the third age of the stand (Figure 9). Fertilization rate was generally less of a factor towards improving grain yield by the third age of the stand (p=0.051) (Table 4--7 , Figure 7). Lodging was significantly greater in the second age of the stand than the third (+0.61, p=0.002), since no lodging occurred in the third year. The unfertilized control lodged more than the average of the fertilized treatments in the second year of the stand age (+1.8, p\<0.05) (Table 6). Plant height was significantly shorter in the third age of the stand than the second (-32, p\<0.0001) (Table 6--7).
+
+### Discussion:
+
 Average yields for other nitrogen timing treatments steadily decreased each growing year, although the split (fall split) treatment was likely similar among stand age 1 and 2 (Figure 8). The fall split treatment was also overall a better nitrogen timing treatment than applying fertilizer as a spring split. Staples fall and half of the fall split fertilizer was not applied before grain harvest of the first age of the stand. This explains the significant interaction, since grain yield was the lowest in the first age of the stand for fall applied fertilizer, but the highest in the second age (Figure 8). The nitrogen application rate had less of an effect in the third year likely due to many factors. By the third year, intermediate wheatgrass plants have more robust root systems and therefore may have a greater ability to access nutrients in the soil. There is also increased interspecific competition and therefore carbohydrate production from photosynthesis could be redirected towards perennial competition instead of grain production. Further investigation of seeding density, shattering, and tiller recruitment of a perennial stand would provide insight. We found no superior nitrogen timing at this research site, which encourages greater flexibility for growers. Nitrogen timing could be better applied locally depending on weed pressure and field activities related to other cropping systems. The application rate and timing of fertilizer could be applied in different stand ages to reduce overall weed abundance, but this would likely vary depending on weed biology in individual fields. When fertilizing, growers could also consider whether a robust yield is preferred early or later in the age of the stand. Since the price of fertilizer changes, waiting to fertilize or amend the soil until prices are low allows for additional flexibility for growers. The nitrogen rate that determines the maximum grain yield does not consider costs such as fertilizer, equipment, and grain value (Figure 7).

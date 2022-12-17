@@ -24,6 +24,10 @@ Are there plots that received nitrogen in the fall prior to their first harvest?
 
 Based on data, it appears the plots with a fall treatment applied N in fall for Staples. This complicates how we analyze timing and the reason we have in interaction at staples
 
+We may have to make a new dataset--remove the fall treatments because they are offset in their fertilization...this is why we need to do a better job thinking out how the data will be analyzed. Doing this stuff weirdly after the fact is annoying because it is heartbreaking getting rid of data. This was just not planned well, and we shouldn't have taken the data. But also, it's fine. I always go back and forth
+
+
+
 # Datasets
 
 ```{r, include=F}
