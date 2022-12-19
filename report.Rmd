@@ -29,11 +29,10 @@ We need to figure out which data sets to use for comparisons.
 
 Originally, I wanted to combine datasets to answer different questions, but issues with stand age prevent this
 
-Due to differences across sites, it may make the most sense to analyze sites seperately and see if a consistent pattern emerges. This is what Dominic did. 
+Due to differences across sites, it may make the most sense to analyze sites separately and see if a consistent pattern emerges. This is what Dominic did. 
 
-What datasets are required to do this?
-
-
+But first, I will create a common dataset
+see new-dataset.R
 
 # Methods
 
