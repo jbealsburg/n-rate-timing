@@ -12,7 +12,7 @@ editor_options:
 ```{r, echo=F, message=F}
 knitr::opts_chunk$set(echo = F,
                       message = F,
-                      include = F)
+                      include = F, warning = F)
 
 # echo = display code
 # message = display code message
@@ -20,6 +20,9 @@ knitr::opts_chunk$set(echo = F,
 
 library(multcomp)
 source("nrate_eda_9dec2022.R")
+source("new-dataset.R")
+
+theme_set(theme_bw())
 
 ```
 
@@ -31,8 +34,88 @@ Originally, I wanted to combine datasets to answer different questions, but issu
 
 Due to differences across sites, it may make the most sense to analyze sites separately and see if a consistent pattern emerges. This is what Dominic did. 
 
-But first, I will create a common dataset
-see new-dataset.R
+similar to Dominic, created a new dataframe where N applied is distributed across timings to create a consistent format across sites
+
+\newpage
+
+```{r, include=T}
+
+# this dataset is still not fully tested for accuracy yet. 
+
+dat_new %>% 
+  # colnames()
+  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,cumn) %>% 
+  mutate(`cumulative N` = fall+spring+summer) %>% 
+  head(10) %>% 
+  knitr::kable(
+    caption = "first 10 rows of new data frame used for analysis"
+  )
+
+```
+
+\newpage
+```{r, echo=T, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
+
+dat_new  %>% 
+  ggplot(aes(fall+spring+summer,yield.kgperha,
+             group = stand.age,
+             col=stand.age) )+
+  geom_point() +
+  stat_summary(
+    geom="line"
+  ) +
+  facet_wrap(~location)
+```
+
+\newpage
+
+```{r,include=T, fig.cap="yield response to fertilizer within timing"}
+dat_new  %>% 
+  ggplot(aes(fall,yield.kgperha,
+             group = stand.age,
+             col=stand.age) )+
+  geom_point() +
+  stat_summary(
+    geom="line"
+  ) +
+  facet_wrap(~location)
+
+dat_new  %>% 
+  ggplot(aes(spring,yield.kgperha,
+             group = stand.age,
+             col=stand.age) )+
+  geom_point() +
+  stat_summary(
+    geom="line"
+  ) +
+  facet_wrap(~location)
+
+dat_new  %>% 
+  ggplot(aes(summer,yield.kgperha,
+             group = stand.age,
+             col=stand.age) )+
+  geom_point() +
+  stat_summary(
+    geom="line"
+  ) +
+  facet_wrap(~location)
+```
+
+\newpage
+
+```{r}
+
+dat_new %>% 
+  pivot_longer(
+    c(fall,spring,summer)
+  ) %>% 
+  # View()
+  ggplot(aes(value,yield.kgperha,
+             color=name,
+             shape = stand.age)) +
+  geom_point() +
+  facet_wrap(~location)
+```
 
 # Methods
 

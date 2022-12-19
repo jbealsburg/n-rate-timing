@@ -143,7 +143,7 @@ dat_r100 %>%
   ) %>%  
   mutate(summer = gross_rate-fall2-spring) %>% 
   mutate(fall = if_else(
-    stand.age == "1",
+    stand.age == "2",
     0,
     fall2
   ),
@@ -159,4 +159,6 @@ dat_r100 %>%
 
 dat_v172 %>% 
   bind_rows(dat_r1002) %>% 
-  bind_rows(dat_staples2) -> dat_new
+  bind_rows(dat_staples2) %>% 
+  dplyr::select(-gross_rate) %>% 
+  mutate(cumn = fall+spring+summer)-> dat_new
