@@ -56,8 +56,18 @@ rsmtv17 %>%
                 napplied,ntiming,stand.age,block,
                 yield.kgperha
   ) %>% 
-  mutate_all(factor) %>% 
-  mutate(yield.kgperha = as.numeric(yield.kgperha)) -> dat_v17
+  mutate(
+    across(
+      .cols = where(is.character),
+      .fns = factor
+    )
+  )  %>% 
+  mutate(
+    across(
+      where(is.integer),
+      factor
+    )
+  )  -> dat_v17
 
 r100<- read.csv("Rosemount_R100.csv")
 
@@ -70,12 +80,23 @@ r100 %>%
                 napplied_update,
                 yield.kgperha
   ) %>% 
-  mutate_all(factor) %>% 
-  mutate(yield.kgperha = as.numeric(yield.kgperha)) -> dat_r100
+  mutate(
+    across(
+      .cols = where(is.character),
+      .fns = factor
+    )
+  )  %>% 
+  mutate(
+    across(
+      where(is.integer),
+      factor
+    )
+  )-> dat_r100
 
 # there are multiple staples datasets
 staples <- read.csv("Staples.csv")
 staples_split <- read.csv("Staples.Nsplit.analysis.only.csv")
+
 
 staples %>% 
   rename_all(tolower) %>% 
@@ -88,9 +109,18 @@ staples %>%
                 yield.kgperha,
                 cumulative.grain.yield
   ) %>% 
-  mutate_all(factor) %>% 
-  mutate(yield.kgperha = as.numeric(yield.kgperha),
-         cumulative.grain.yield = as.numeric(cumulative.grain.yield)) -> dat_staples
+  mutate(
+    across(
+      .cols = where(is.character),
+      .fns = factor
+    )
+  ) %>% 
+  mutate(
+    across(
+      where(is.integer),
+      factor
+    )
+  ) -> dat_staples
 
 dat_staples %>% 
   filter(ntiming == "Unfertilized" |
