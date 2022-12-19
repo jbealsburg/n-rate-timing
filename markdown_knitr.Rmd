@@ -28,15 +28,16 @@ fontfamily: mathpazo
 fontsize: 11pt
 geometry: margin = 1in
 header-includes:
-- \usepackage{setspace}\doublespacing
+- \usepackage{setspace}
+- \doublespacing
 - \usepackage[left]{lineno}
 - \linenumbers
-- \usepackage{dcolumn}
-- \usepackage{caption}
-- \usepackage{float}
-- \usepackage{afterpage}
-- \usepackage{siunitx}
-- \usepackage{amsmath}
+# - \usepackage{dcolumn}
+# - \usepackage{caption}
+# - \usepackage{float}
+# - \usepackage{afterpage}
+# - \usepackage{siunitx}
+# - \usepackage{amsmath}
 # bibliography: # csl: 
 
 
@@ -45,10 +46,9 @@ editor_options:
 ---
 
 ```{r, include=F}
-knitr::opts_chunk$set(include = F)
-
+knitr::opts_chunk$set(include = F, warning=F,
+                      echo = F, error = F, message = F)
 ```
-
 
 
 ```{r}
@@ -66,12 +66,60 @@ dat_v17 %>%
 
 ```
 
+\newpage
+
+```{r, include=T, echo=F}
+dat_v17 %>% 
+  bind_rows(dat_r100) %>% 
+  bind_rows(dat_staples) %>% 
+  group_by(location, stand.age) %>% 
+  summarise(n=n()) %>% 
+  knitr::kable(
+    caption = "location X stand age"
+  )
+
+dat_v17 %>% 
+  bind_rows(dat_r100) %>% 
+  bind_rows(dat_staples) %>% 
+  group_by(location, treatment) %>% 
+  summarise(n=n()) %>% 
+  knitr::kable(
+    caption = "location X treatment"
+  )
+
+```
+
+\newpage
+
+```{r table practice, include=T, echo=F}
+
+dat_v17 %>% 
+  bind_rows(dat_r100) %>% 
+  bind_rows(dat_staples) %>% 
+  # distinct(treatment)
+  group_by(treatment, location, stand.age) %>% 
+  summarise(n=n()) %>% 
+  knitr::kable(caption="all treatments")
+```
+
+\newpage
 # Introduction
 
+Practicing equation
+
+$$
+Y = mx + b
+$$
+
+$$
+Y \sim X\beta_0 + X\beta_1 + \epsilon
+$$
+\newpage
 # Methods
 
 Split application treatments received 20, 40, 60, or 80 lb ac-1 of nitrogen in the summer month of May or June and all received 60 lb ac-1 of nitrogen in either the fall or spring. Rosemount V-17 did not contain different nitrogen application rates, since all fertility treatments received 80 total lb ac-1. The split treatment at Rosemount V-17 was split in the fall and spring and did not receive a summer application of fertilizer which Rosemount R-100 and Staples did. Grain yield data was unavailable for the first stand age at Rosemount R-100. Lodging and height data are missing from some stand ages at research sites.
 
+\newpage
 # Results and discussion
 
 ## R100

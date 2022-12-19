@@ -1,12 +1,17 @@
 ---
-title: n-rate timing report
+title: n-rate timing analysis report
+author: jesse puka-beals
 date: "`r Sys.Date()`"
+output:
+  pdf_document
 editor_options: 
   chunk_output_type: console
 ---
 
 ```{r, echo=F, message=F}
-knitr::opts_chunk$set(echo = F,message = F, include = F)
+knitr::opts_chunk$set(echo = F,
+                      message = F,
+                      include = F)
 
 # echo = display code
 # message = display code message
@@ -16,17 +21,87 @@ library(multcomp)
 
 ```
 
+# Summary
+
+We need to figure out if yield data makes sense (it is very low) and what datasets we have to make comparisons. The delay of applying fall N rates on first year stands complicates analysis.
 
 # Questions
 
-Were the fall treatments applied right after planting or the following year?\
-Are there plots that received nitrogen in the fall prior to their first harvest?
+Were the fall treatments applied right after planting or the following year? I assume yes.
 
-Based on data, it appears the plots with a fall treatment applied N in fall for Staples. This complicates how we analyze timing and the reason we have in interaction at staples
+Are there plots that received nitrogen in the fall prior to their first harvest? I assume yes.
 
-We may have to make a new dataset--remove the fall treatments because they are offset in their fertilization...this is why we need to do a better job thinking out how the data will be analyzed. Doing this stuff weirdly after the fact is annoying because it is heartbreaking getting rid of data. This was just not planned well, and we shouldn't have taken the data. But also, it's fine. I always go back and forth
+The fall treatments are offset by a year in V17, and complicated by a summer N application in year 1 prior to harvest. Fall treatments may need to be analyzed separately as a treatment only measured on year 2 and 3 kernza stands. At Staples and R100, fall plots received summer N in year 1 prior to harvest. At V17, fall plots received 0N prior to harvest.
 
+\newpage
 
+## treatment table
+
++------------+------------+------------+----------------------------+
+| location   | harvest    | timing[^1] | N applied prior to harvest |
++============+============+============+============================+
+| V17        | 1          | fall       | no                         |
++------------+------------+------------+----------------------------+
+| V17        | 1          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| V17        | 1          | summer     | no                         |
++------------+------------+------------+----------------------------+
+| V17        | 2          | fall       | yes                        |
++------------+------------+------------+----------------------------+
+| V17        | 2          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| V17        | 2          | summer     | no                         |
++------------+------------+------------+----------------------------+
+| V17        | 3          | fall       | yes                        |
++------------+------------+------------+----------------------------+
+| V17        | 3          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| V17        | 3          | summer     | no                         |
++------------+------------+------------+----------------------------+
+| Staples    | 1          | fall       | no                         |
++------------+------------+------------+----------------------------+
+| Staples    | 1          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| Staples    | 1          | summer     | yes                        |
++------------+------------+------------+----------------------------+
+| Staples    | 2          | fall       | yes                        |
++------------+------------+------------+----------------------------+
+| Staples    | 2          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| Staples    | 2          | summer     | yes                        |
++------------+------------+------------+----------------------------+
+| Staples    | 3          | fall       | yes                        |
++------------+------------+------------+----------------------------+
+| Staples    | 3          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| Staples    | 3          | summer     | yes                        |
++------------+------------+------------+----------------------------+
+| R100       | 1          | fall       | no                         |
++------------+------------+------------+----------------------------+
+| R100       | 1          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| R100       | 1          | summer     | yes                        |
++------------+------------+------------+----------------------------+
+| R100       | 2          | fall       | yes                        |
++------------+------------+------------+----------------------------+
+| R100       | 2          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| R100       | 2          | summer     | yes                        |
++------------+------------+------------+----------------------------+
+| R100       | 3          | fall       | yes                        |
++------------+------------+------------+----------------------------+
+| R100       | 3          | spring     | yes                        |
++------------+------------+------------+----------------------------+
+| R100       | 3          | summer     | yes                        |
++------------+------------+------------+----------------------------+
+
+[^1]: fall timing is applied in year prior to harvest
+
+At V17, plots with a spring timing got fertilized prior to the first kernza harvest. If any of that N remains in the soil and rolls over into the next year, it will make spring N plots look higher yielding then they are.
+
+At R100 and Staples, this effect will be diluted by the summer applied N
+
+\newpage
 
 # Datasets
 
@@ -58,15 +133,17 @@ dat_v17 %>%
 | V17      | 1,2,3      | 16,16,16 | control, 80 fall, 80 split, 80 spring | 12      |
 +----------+------------+----------+---------------------------------------+---------+
 
-+---------------------------+------------+---------------+------------+---------------------------------+---------------------------------+
-| balanced datasets         |            | locations     | stand.ages | treatments                      | model                           |
-+===========================+============+===============+============+=================================+=================================+
-| timing dataset            | dat_timing | Staples, V17  | 1,2,3      | control, spring only, fall only | y\~treatmentXlocationXstand.age |
-+---------------------------+------------+---------------+------------+---------------------------------+---------------------------------+
-| nrate dataset             | dat_nrate  | Staples       | 1,2,3      | all                             | y\~treatmentXlocationXstand.age |
-+---------------------------+------------+---------------+------------+---------------------------------+---------------------------------+
-| nrate older stand dataset | dat_old    | Staples, R100 | 2,3        | all                             | y\~treatmentXlocationXstand.age |
-+---------------------------+------------+---------------+------------+---------------------------------+---------------------------------+
++-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
+| balanced datasets | name        | locations          | stand.ages | treatments                      | model                                  |
++===================+=============+====================+============+=================================+========================================+
+| timing            | dat_timing  | Staples, V17       | 1,2,3      | control, spring only            | y\~timing X location X stand.age       |
++-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
+| timing2           | dat_timing2 | Staples, V17, R100 | 2,3        | control, spring only, fall only | y\~timing X location X stand.age       |
++-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
+| nrate             | dat_nrate   | Staples            | 1,2,3      | all                             | y\~updatednrate X location X stand.age |
++-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
+| nrate older stand | dat_old     | Staples, R100      | 2,3        | all                             | y\~treatment X location X stand.age    |
++-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
 
 +-------------------+----------------------------------------------------------------------------------------------+
 | balanced datasets | testable hypotheses                                                                          |
@@ -116,6 +193,29 @@ V17: fall application is best (including split)
 
 R100: does not make a lot of sense
 
+\newpage
+
+# Yield estimate issue
+
+```{r, include=T,warning=F,fig.cap= "Yields at all 3 sites range from 0-150 kg ha. We expect yields ranging from 0-1000 kg ha. Why are yields so low?"}
+theme_set(theme_bw())
+
+dat_v17 %>% 
+  bind_rows(dat_staples) %>% 
+  bind_rows(dat_r100) %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin(aes(
+    # fill=location
+  ),
+  bins=10,
+  col=1
+  ) +
+  facet_wrap(~location) +
+  labs(x="Yield (kg ha)") 
+```
+
+\newpage
+
 # Analysis
 
 ```{r}
@@ -133,6 +233,35 @@ dat_r100 %>%
 
 ## Dat_timing
 
+```{r no fall}
+
+dat_timing %>% 
+  filter(timing != "fall") %>% 
+  lm(yield.kgperha~timing*stand.age*location,
+     .
+     ) %>% 
+  # anova()
+  emmeans(~timing)
+
+```
+
+We reject Ho that yields are similar between plots that were and were no fertilized in the spring across all 3 years at V17 and R100.
+
+```{r fall and spring but only years 2 and 3}
+
+# we need to add in R100 now
+
+dat_timing %>% 
+  filter(stand.age != "1") %>% 
+  lm(yield.kgperha~timing*stand.age*location,
+     .
+     ) %>% 
+  anova()
+  # emmeans(~timing)
+
+
+```
+
 ```{r}
 ## Mixed effect models don't work here
 # Block explains nothing and locations are too few to treat as random
@@ -145,19 +274,19 @@ dat_r100 %>%
 #   car::Anova()
 
 
-# dat_timing %>% 
+dat_timing %>%
   # distinct(location)
+  # filter(location=="Staples") %>%
+  filter(location=="RSMT V17") %>%
   lm(
     # yield.kgperha~timing*location*stand.age,
     yield.kgperha~timing*stand.age,
-    filter(dat_timing,location=="Staples")
-    # filter(dat_timing,location=="RSMT V17")
-    # .
+    .
   ) %>% 
   # summary()
-  # anova()
-  emmeans(~timing*stand.age) %>% 
-  cld(Letters=letters, reverse=T)
+  anova()
+  # emmeans(~timing*stand.age) %>% 
+  # cld(Letters=letters, reverse=T)
 
 # 3-way interaction with location and stand.age
 # staples interaction between timing and stand age
@@ -189,23 +318,23 @@ dat_timing %>%
 
 ```
 
-+-------------+-------------+---------------------------+------------------+
-| dataset     | location    | fixed effects             | p-value          |
-+=============+=============+===========================+==================+
-| dat_timing  | combined    | timing:location:stand.age | \*\*             |
-+-------------+-------------+---------------------------+------------------+
-| dat_timing  | staples     | timing                    | \*\*             |
-+-------------+-------------+---------------------------+------------------+
-| dat_timing  | staples     | stand.age                 | \*\*\*           |
-+-------------+-------------+---------------------------+------------------+
-| dat_timing  | staples     | timing\*stand.age         | \*               |
-+-------------+-------------+---------------------------+------------------+
-| dat_timing  | v17         | timing                    | \*\*\*           |
-+-------------+-------------+---------------------------+------------------+
-| dat_timing  | v17         | stand.age                 | \*\*\*           |
-+-------------+-------------+---------------------------+------------------+
-| dat_timing  | v17         | timing\*stand.age         |                  |
-+-------------+-------------+---------------------------+------------------+
++--------------+--------------+---------------------------+--------------+
+| dataset      | location     | fixed effects             | p-value      |
++==============+==============+===========================+==============+
+| dat_timing   | combined     | timing:location:stand.age | \*\*         |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | staples      | timing                    | \*\*         |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | staples      | stand.age                 | \*\*\*       |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | staples      | timing\*stand.age         | \*           |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | v17          | timing                    | \*\*\*       |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | v17          | stand.age                 | \*\*\*       |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | v17          | timing\*stand.age         | NS           |
++--------------+--------------+---------------------------+--------------+
 
 The effects of timing and stand age were not consistent across sites, and required each site be analyzed separately.
 
