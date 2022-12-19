@@ -6,16 +6,12 @@ author:
 - Dominic Christensen
 - Craig Scheaffer
 - Jacob Jungers
-
 date: "`r format(Sys.time(), '%B %d, %Y')`"
-
 keywords:
   - key
   - dictionary
   - word
-
 abstract: Wheatgrass is a new perennial grain crop in Minnesota. We established wheatgrass stands at 3 locations and then applied different rates of nitrogen fertilizer at different times in the growing season. We recorded grain yield, height and lodging over 3 years. Wheatgrass yields ranged from 1 to 130 kg ha-1 yr-1. When fertilized, yields were 81% greater. The extent to which yields differed among the rates and timings of N fertilizer applied was not consistent across sites nor stand age. The variability inherent in estimating yields from kernza stands with small quadrats makes drawing conclusions difficult without many sites and years. We hope the dataset and confidence intervals presented here can be useful in future research in understanding the role of N in provisioning more grain yield from this new perennial crop in Minnesota. 
-
 output:
   # word_document: 
   pdf_document:
@@ -32,15 +28,7 @@ header-includes:
 - \doublespacing
 - \usepackage[left]{lineno}
 - \linenumbers
-# - \usepackage{dcolumn}
-# - \usepackage{caption}
-# - \usepackage{float}
-# - \usepackage{afterpage}
-# - \usepackage{siunitx}
-# - \usepackage{amsmath}
 # bibliography: # csl: 
-
-
 editor_options: 
   chunk_output_type: console
 ---
@@ -69,6 +57,7 @@ dat_v17 %>%
 \newpage
 
 ```{r, include=T, echo=F}
+# source("nrate_eda_9dec2022.R")
 dat_v17 %>% 
   bind_rows(dat_r100) %>% 
   bind_rows(dat_staples) %>% 
@@ -77,6 +66,8 @@ dat_v17 %>%
   knitr::kable(
     caption = "location X stand age"
   )
+
+
 
 dat_v17 %>% 
   bind_rows(dat_r100) %>% 
