@@ -31,13 +31,9 @@ Originally, I wanted to combine datasets to answer different questions, but issu
 
 Due to differences across sites, it may make the most sense to analyze sites seperately and see if a consistent pattern emerges. This is what Dominic did. 
 
-# Questions
+What datasets are required to do this?
 
-Were the fall treatments applied right after planting or the following year? Yes.
 
-Are there plots that received nitrogen in the fall prior to their first harvest? No.
-
-The fall treatments are offset by a year in V17, and complicated by a summer N application in year 1 prior to harvest. Fall treatments may need to be analyzed separately as a treatment only measured on year 2 and 3 kernza stands. At Staples and R100, fall plots received summer N in year 1 prior to harvest. At V17, fall plots received 0N prior to harvest.
 
 # Methods
 
@@ -179,7 +175,6 @@ At R100 and Staples, this effect will be diluted by the summer applied N
 
 ```{r, include=F}
 
-source("nrate_eda_9dec2022.R")
 dat_staples %>% 
   # group_by(stand.age) %>% 
   group_by(treatment) %>% 
@@ -274,134 +269,134 @@ This issue was caused by converting numeric yield to a factor category and then 
 \newpage
 
 
-<!-- # Analysis -->
+# Analysis
 
-<!-- ```{r} -->
+```{r}
 
-<!-- dat_v17_tiny %>%  -->
-<!--   bind_rows(dat_staples_tiny) -> dat_timing -->
+dat_v17_tiny %>%
+  bind_rows(dat_staples_tiny) -> dat_timing
 
-<!-- dat_staples -> dat_nrate -->
+dat_staples -> dat_nrate
 
-<!-- dat_r100 %>%  -->
-<!--   bind_rows(dat_staples) %>%  -->
-<!--   filter(stand.age != "1") -> dat_old -->
+dat_r100 %>%
+  bind_rows(dat_staples) %>%
+  filter(stand.age != "1") -> dat_old
 
-<!-- ``` -->
+```
 
-<!-- ## Dat_timing -->
+## Dat_timing
 
-<!-- ```{r no fall} -->
+```{r no fall}
 
-<!-- dat_timing %>%  -->
-<!--   filter(timing != "fall") %>%  -->
-<!--   lm(yield.kgperha~timing*stand.age*location, -->
-<!--      . -->
-<!--      ) %>%  -->
-<!--   # anova() -->
-<!--   emmeans(~timing) -->
+dat_timing %>%
+  filter(timing != "fall") %>%
+  lm(yield.kgperha~timing*stand.age*location,
+     .
+     ) %>%
+  # anova()
+  emmeans(~timing)
 
-<!-- ``` -->
+```
 
-<!-- We reject Ho that yields are similar between plots that were and were no fertilized in the spring across all 3 years at V17 and R100. -->
+We reject Ho that yields are similar between plots that were and were no fertilized in the spring across all 3 years at V17 and R100.
 
-<!-- ```{r fall and spring but only years 2 and 3} -->
+```{r fall and spring but only years 2 and 3}
 
-<!-- # we need to add in R100 now -->
+# we need to add in R100 now
 
-<!-- dat_timing %>%  -->
-<!--   filter(stand.age != "1") %>%  -->
-<!--   lm(yield.kgperha~timing*stand.age*location, -->
-<!--      . -->
-<!--      ) %>%  -->
-<!--   anova() -->
-<!--   # emmeans(~timing) -->
-
-
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- ## Mixed effect models don't work here -->
-<!-- # Block explains nothing and locations are too few to treat as random -->
-
-<!-- # lmer( -->
-<!-- #   yield.kgperha~timing*stand.age+ -->
-<!-- #     (1|location/block), -->
-<!-- #   dat_timing -->
-<!-- # ) %>%  -->
-<!-- #   car::Anova() -->
+dat_timing %>%
+  filter(stand.age != "1") %>%
+  lm(yield.kgperha~timing*stand.age*location,
+     .
+     ) %>%
+  anova()
+  # emmeans(~timing)
 
 
-<!-- dat_timing %>% -->
-<!--   # distinct(location) -->
-<!--   # filter(location=="Staples") %>% -->
-<!--   filter(location=="RSMT V17") %>% -->
-<!--   lm( -->
-<!--     # yield.kgperha~timing*location*stand.age, -->
-<!--     yield.kgperha~timing*stand.age, -->
-<!--     . -->
-<!--   ) %>%  -->
-<!--   # summary() -->
-<!--   anova() -->
-<!--   # emmeans(~timing*stand.age) %>%  -->
-<!--   # cld(Letters=letters, reverse=T) -->
+```
 
-<!-- # 3-way interaction with location and stand.age -->
-<!-- # staples interaction between timing and stand age -->
+```{r}
+## Mixed effect models don't work here
+# Block explains nothing and locations are too few to treat as random
 
-<!-- # interaction -->
-<!-- dat_timing %>%  -->
-<!--   filter(location=="Staples") %>% -->
-<!--   # filter(location=="RSMT V17") %>%  -->
-<!--   ggplot(aes(timing,yield.kgperha, -->
-<!--              group = stand.age, -->
-<!--              col=stand.age)) + -->
-<!--   stat_summary(geom = "line")  -->
-
-<!-- # This interaction is due to year1 fall essentially being a control -->
-
-<!-- dat_timing %>%  -->
-<!--   filter(stand.age != "1" | timing != "fall") %>%  -->
-<!--   filter(location == "Staples") %>%  -->
-<!--   # ggplot(aes(timing,yield.kgperha, -->
-<!--   #            group = stand.age, -->
-<!--   #            color=stand.age)) + -->
-<!--   # stat_summary(geom = "line") -->
-<!--   lm( -->
-<!--     yield.kgperha~timing*stand.age, -->
-<!--     . -->
-<!--   ) %>%  -->
-<!--   anova() -->
+# lmer(
+#   yield.kgperha~timing*stand.age+
+#     (1|location/block),
+#   dat_timing
+# ) %>%
+#   car::Anova()
 
 
-<!-- ``` -->
+dat_timing %>%
+  # distinct(location)
+  # filter(location=="Staples") %>%
+  filter(location=="RSMT V17") %>%
+  lm(
+    # yield.kgperha~timing*location*stand.age,
+    yield.kgperha~timing*stand.age,
+    .
+  ) %>%
+  # summary()
+  anova()
+  # emmeans(~timing*stand.age) %>%
+  # cld(Letters=letters, reverse=T)
 
-<!-- +--------------+--------------+---------------------------+--------------+ -->
-<!-- | dataset      | location     | fixed effects             | p-value      | -->
-<!-- +==============+==============+===========================+==============+ -->
-<!-- | dat_timing   | combined     | timing:location:stand.age | \*\*         | -->
-<!-- +--------------+--------------+---------------------------+--------------+ -->
-<!-- | dat_timing   | staples      | timing                    | \*\*         | -->
-<!-- +--------------+--------------+---------------------------+--------------+ -->
-<!-- | dat_timing   | staples      | stand.age                 | \*\*\*       | -->
-<!-- +--------------+--------------+---------------------------+--------------+ -->
-<!-- | dat_timing   | staples      | timing\*stand.age         | \*           | -->
-<!-- +--------------+--------------+---------------------------+--------------+ -->
-<!-- | dat_timing   | v17          | timing                    | \*\*\*       | -->
-<!-- +--------------+--------------+---------------------------+--------------+ -->
-<!-- | dat_timing   | v17          | stand.age                 | \*\*\*       | -->
-<!-- +--------------+--------------+---------------------------+--------------+ -->
-<!-- | dat_timing   | v17          | timing\*stand.age         | NS           | -->
-<!-- +--------------+--------------+---------------------------+--------------+ -->
+# 3-way interaction with location and stand.age
+# staples interaction between timing and stand age
 
-<!-- The effects of timing and stand age were not consistent across sites, and required each site be analyzed separately. -->
+# interaction
+dat_timing %>%
+  filter(location=="Staples") %>%
+  # filter(location=="RSMT V17") %>%
+  ggplot(aes(timing,yield.kgperha,
+             group = stand.age,
+             col=stand.age)) +
+  stat_summary(geom = "line")
 
-<!-- *Yields are similar regardless of fertilization* -->
+# This interaction is due to year1 fall essentially being a control
 
-<!-- Staples: there is an interaction between the effect of fertilization and stand.age. -->
+dat_timing %>%
+  filter(stand.age != "1" | timing != "fall") %>%
+  filter(location == "Staples") %>%
+  # ggplot(aes(timing,yield.kgperha,
+  #            group = stand.age,
+  #            color=stand.age)) +
+  # stat_summary(geom = "line")
+  lm(
+    yield.kgperha~timing*stand.age,
+    .
+  ) %>%
+  anova()
 
-<!-- R100: -->
 
-<!-- Yields are similar regardless of timing (treatment != control) -->
+```
 
-<!-- Yields are similar regardless of stand.age or location -->
++--------------+--------------+---------------------------+--------------+
+| dataset      | location     | fixed effects             | p-value      |
++==============+==============+===========================+==============+
+| dat_timing   | combined     | timing:location:stand.age | \*\*         |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | staples      | timing                    | \*\*         |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | staples      | stand.age                 | \*\*\*       |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | staples      | timing\*stand.age         | \*           |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | v17          | timing                    | \*\*\*       |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | v17          | stand.age                 | \*\*\*       |
++--------------+--------------+---------------------------+--------------+
+| dat_timing   | v17          | timing\*stand.age         | NS           |
++--------------+--------------+---------------------------+--------------+
+
+The effects of timing and stand age were not consistent across sites, and required each site be analyzed separately.
+
+*Yields are similar regardless of fertilization*
+
+Staples: there is an interaction between the effect of fertilization and stand.age.
+
+R100:
+
+Yields are similar regardless of timing (treatment != control)
+
+Yields are similar regardless of stand.age or location
