@@ -2,6 +2,7 @@
 title: n-rate timing analysis report
 author: jesse puka-beals
 date: "`r Sys.Date()`"
+# date: "Dec 19, 2022"
 output:
   pdf_document
 editor_options: 
@@ -18,25 +19,61 @@ knitr::opts_chunk$set(echo = F,
 # include = include chunk outputs in doc output
 
 library(multcomp)
+source("nrate_eda_9dec2022.R")
 
 ```
 
 # Summary
 
-We need to figure out if yield data makes sense (it is very low) and what datasets we have to make comparisons. The delay of applying fall N rates on first year stands complicates analysis.
+We need to figure out which data sets to use for comparisons. 
+
+Originally, I wanted to combine datasets to answer different questions, but issues with stand age prevent this
+
+Due to differences across sites, it may make the most sense to analyze sites seperately and see if a consistent pattern emerges. This is what Dominic did. 
 
 # Questions
 
-Were the fall treatments applied right after planting or the following year? I assume yes.
+Were the fall treatments applied right after planting or the following year? Yes.
 
-Are there plots that received nitrogen in the fall prior to their first harvest? I assume no.
+Are there plots that received nitrogen in the fall prior to their first harvest? No.
 
 The fall treatments are offset by a year in V17, and complicated by a summer N application in year 1 prior to harvest. Fall treatments may need to be analyzed separately as a treatment only measured on year 2 and 3 kernza stands. At Staples and R100, fall plots received summer N in year 1 prior to harvest. At V17, fall plots received 0N prior to harvest.
 
+# Methods
+
+Yield data was collected from 3 sites. All sites have control plots. 
+
+V17: treatments initiated in spring of year 1, 3 years of yield data. No summer N, fall (80N), spring (80N) or split (40N spring, 40N fall)
+
+R100: treatments initiated in spring of year 2, 2 years of yield data. Spring and fall N at 60N, summer N varies. 
+
+staples: treatments initiated in spring of year 1, 3 years of yield data. Spring and fall N at 60N, summer N varies. 
+
+Sites are confounded by planting year, stand.age, soil type, row spacing. 
+
+Fall treatments only begin to occur in year 2. 
+
 \newpage
 
+```{r, include=T}
+dat_v17 %>% 
+  bind_rows(dat_staples) %>% 
+  bind_rows(dat_r100) %>% 
+  # colnames()
+  # group_by(location,year,stand.age) %>%
+  group_by(year, location, stand.age) %>% 
+  # glimpse()
+  mutate(year = fct_relevel(year, 
+                            "2018", 
+                            .before = "2019")) %>% 
+  summarise(n=n()) %>% 
+  knitr::kable(
+    caption = "year X location X stand.age"
+  )
+```
+
+
 ```{r, include=T, echo=F}
-source("nrate_eda_9dec2022.R")
 
 
 dat_v17 %>% 
@@ -232,22 +269,7 @@ R100: does not make a lot of sense
 
 # Yield estimate issue
 
-```{r, include=T,warning=F,fig.cap= "Yields at all 3 sites range from 0-150 kg ha across all years of data collection. We expect yields ranging from 0-1000 kg ha. Why are yields so low?"}
-theme_set(theme_bw())
-
-dat_v17 %>% 
-  bind_rows(dat_staples) %>% 
-  bind_rows(dat_r100) %>% 
-  ggplot(aes(yield.kgperha)) +
-  stat_bin(aes(
-    # fill=location
-  ),
-  bins=10,
-  col=1
-  ) +
-  facet_wrap(~location) +
-  labs(x="Yield (kg ha)") 
-```
+This issue was caused by converting numeric yield to a factor category and then converting it back to numeric. Very strange, but the problem is resolved
 
 \newpage
 
