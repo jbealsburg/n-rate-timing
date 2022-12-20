@@ -54,7 +54,10 @@ rsmtv17 %>%
   rename_all(tolower) %>% 
   dplyr::select(year,experiment,location,id,treatment,
                 napplied,ntiming,stand.age,block,
-                yield.kgperha
+                yield.kgperha,
+                lodging,
+                height_1,height_2,height_3,
+                height_4, height_5
   ) %>% 
   mutate(
     across(
@@ -78,7 +81,10 @@ r100 %>%
                 napplied,ntiming,stand.age,block,
                 ntiming_newlabel,
                 napplied_update,
-                yield.kgperha
+                yield.kgperha,
+                lodging,
+                height_1,height_2,height_3,
+                height_4, height_5
   ) %>% 
   mutate(
     across(
