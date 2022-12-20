@@ -8,7 +8,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r, echo=F, message=F}
+```{r import, echo=F, message=F}
 knitr::opts_chunk$set(echo = F,
                       message = F,
                       include = F, warning = F)
@@ -20,6 +20,8 @@ knitr::opts_chunk$set(echo = F,
 library(multcomp)
 source("nrate_eda_9dec2022.R")
 source("new-dataset.R")
+read.csv("field_activities.csv") -> dat_activities
+
 
 theme_set(theme_bw())
 
@@ -27,140 +29,17 @@ theme_set(theme_bw())
 
 # Summary
 
-We need to figure out which data sets to use for comparisons.
+Need to figure out how to format dataset, how to subset dataset to answer testable hypotheses
 
-Originally, I wanted to combine data sets to answer different questions, but issues with stand age prevent this
+Goal: combine all data across sites and years into a similar format for analysis
 
-Due to differences across sites, it may make the most sense to analyze sites separately and see if a consistent pattern emerges. This is what Dominic did.
+Issues: Sites are confounded by growing year, stand age, soil, row spacing, treatment rates and timing (except control), duration of study (one site was initiated on a second year stand, other 2 sites on first year stand) and types of data collected (lodging data not available for staples and most of V17).
 
-similar to Dominic, created a new dataframe where N applied is distributed across timings to create a consistent format across sites
+Dominic's solution: Dominic analyzed all sites separately. If similar patterns arise, great.
 
-\newpage
+Jesse's addition: reformatted data frame (dat_new) to standardize data formatting among sites, will still analyze sites seperately like Dominic.
 
-```{r, include=T}
-
-# this dataset is still not fully tested for accuracy yet. 
-
-dat_new %>% 
-  # colnames()
-  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
-  mutate(`cumulative N prior to harvest` = fall+spring+summer,.before=yield.kgperha) %>% 
-  head(10) %>% 
-  knitr::kable(
-    caption = "first 10 rows of new data frame used for analysis"
-  )
-
-```
-
-\newpage
-
-```{r, include=T, fig.cap="Cumulative yield response to cumulative N application"}
-
-dat_new %>% 
-  mutate(lodging.num = as.numeric(lodging)) %>% 
-  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
-  mutate(lodging_status = if_else(
-    lodging.num > 5, 
-    "yes",
-    "no / unknown"
-  )) %>% 
-  filter(lodging_status == "no / unknown") %>% 
-  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
-  mutate(cumn_priortoharvest = fall+spring+summer) %>% 
-  group_by(location,id) %>% 
-  # summarise(cumn_total = fall+spring+summer)
-  # summarise(cumn_total = cumsum(fall+spring+summer))
-  summarise(cumn_total=sum(fall+spring+fall),
-            cumyield_total = sum(yield.kgperha
-                                 # na.rm = T #V17 101 has missing yield in year2
-                                 ))  %>% 
-  # knitr::kable()
-  ggplot(aes(
-    cumn_total,
-    cumyield_total,
-    col=location
-  )) +
-  stat_summary(geom="line") +
-  labs(caption = "R100 shows no N response with and without lodging scores > 5 in dataset
-       this shows dataset where lodging greater than 5 was filtered out")
-```
-
-
-\newpage
-
-```{r, echo=T, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
-
-dat_new  %>%
-  mutate(lodging.num = as.numeric(lodging)) %>% 
-  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
-  mutate(lodging_status = if_else(
-    lodging.num > 5, 
-    "yes",
-    "no / unknown"
-  )) %>% 
-  ggplot(aes(fall+spring+summer,yield.kgperha,
-             group = stand.age,
-             col=stand.age,
-             shape = lodging_status) )+
-  geom_point(alpha=.5) +
-  stat_summary(
-    geom="line"
-  ) +
-  facet_wrap(~location) +
-  labs(caption = "lodging score greater than 5 was considered lodging")
-
-
-```
-
-\newpage
-
-```{r,include=T, fig.cap="yield response to fertilizer within timing"}
-dat_new  %>% 
-  ggplot(aes(fall,yield.kgperha,
-             group = stand.age,
-             col=stand.age) )+
-  geom_point() +
-  stat_summary(
-    geom="line"
-  ) +
-  facet_wrap(~location)
-
-dat_new  %>% 
-  ggplot(aes(spring,yield.kgperha,
-             group = stand.age,
-             col=stand.age) )+
-  geom_point() +
-  stat_summary(
-    geom="line"
-  ) +
-  facet_wrap(~location)
-
-dat_new  %>% 
-  ggplot(aes(summer,yield.kgperha,
-             group = stand.age,
-             col=stand.age) )+
-  geom_point() +
-  stat_summary(
-    geom="line"
-  ) +
-  facet_wrap(~location)
-```
-
-\newpage
-
-```{r}
-
-dat_new %>% 
-  pivot_longer(
-    c(fall,spring,summer)
-  ) %>% 
-  # View()
-  ggplot(aes(value,yield.kgperha,
-             color=name,
-             shape = stand.age)) +
-  geom_point() +
-  facet_wrap(~location)
-```
+R100 dataset demonstrates that applying nitrogen to a kernza stand after not fertilizing in year 1 can lead to a lot of lodging which decreases yield, but even plants that did not lodge yielded poorly. Could this be due to harvest too late after shattering? 
 
 # Methods
 
@@ -172,11 +51,58 @@ R100: treatments initiated in spring of year 2, 2 years of yield data. Spring an
 
 staples: treatments initiated in spring of year 1, 3 years of yield data. Spring and fall N at 60N, summer N varies.
 
-Sites are confounded by planting year, stand.age, soil type, row spacing.
-
 Fall treatments only begin to occur in year 2.
 
 \newpage
+
+```{r, include=T}
+
+dat_activities %>% 
+  dplyr::select(
+    starts_with("Harvest")
+  ) %>% 
+  mutate(location = dat_activities$Location,
+         .before=Harvest.2018) %>% 
+  knitr::kable(
+    caption = "harvest dates"
+  )
+
+dat_activities %>% 
+  dplyr::select(
+    starts_with("Fall")
+  ) %>% 
+  mutate(location = dat_activities$Location,
+         .before=Fall.2017) %>% 
+  knitr::kable(
+    caption = "fall fertilizing dates"
+  )
+
+dat_activities %>% 
+  dplyr::select(
+    starts_with("Spring")
+  ) %>% 
+  mutate(location = dat_activities$Location,
+         .before=Spring.2018) %>% 
+  knitr::kable(
+    caption = "spring fertilizing dates"
+  )
+
+dat_activities %>% 
+  dplyr::select(
+    starts_with("Summer")
+  ) %>% 
+  mutate(location = dat_activities$Location,
+         .before=Summer.2018) %>% 
+  knitr::kable(
+    caption = "summer fertilizing dates"
+  )
+
+```
+
+\newpage
+
+
+# Data summary
 
 ```{r, include=T}
 dat_v17 %>% 
@@ -212,7 +138,6 @@ dat_v17 %>%
 \newpage
 
 ```{r, include=T, echo=F}
-source("nrate_eda_9dec2022.R")
 
 dat_v17 %>% 
   bind_rows(dat_r100) %>% 
@@ -222,305 +147,196 @@ dat_v17 %>%
   knitr::kable(
     caption = "location X treatment"
   )
-  
 
 ```
 
+
+| location | stand.ages | n        | treatments                            | n   |
+|----------|------------|----------|---------------------------------------|-----|
+| Staples  | 1,2,3      | 54,54,54 | n=18, same as r100                    | 9   |
+| R100     | 2,3        | 54,54    | n=18; same as staples                 | 6   |
+| V17      | 1,2,3      | 16,16,16 | control, 80 fall, 80 split, 80 spring | 12  |
 \newpage
-
-## treatment table
-
-+-------------+-------------+-------------+----------------------------+
-| location    | harvest     | timing[^1]  | N applied prior to harvest |
-+=============+=============+=============+============================+
-| V17         | 1           | fall        | no                         |
-+-------------+-------------+-------------+----------------------------+
-| V17         | 1           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| V17         | 1           | summer      | no                         |
-+-------------+-------------+-------------+----------------------------+
-| V17         | 2           | fall        | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| V17         | 2           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| V17         | 2           | summer      | no                         |
-+-------------+-------------+-------------+----------------------------+
-| V17         | 3           | fall        | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| V17         | 3           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| V17         | 3           | summer      | no                         |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 1           | fall        | no                         |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 1           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 1           | summer      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 2           | fall        | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 2           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 2           | summer      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 3           | fall        | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 3           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| Staples     | 3           | summer      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 1           | fall        | no                         |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 1           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 1           | summer      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 2           | fall        | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 2           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 2           | summer      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 3           | fall        | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 3           | spring      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-| R100        | 3           | summer      | yes                        |
-+-------------+-------------+-------------+----------------------------+
-
-[^1]: fall timing is applied in year prior to harvest
-
-At V17, plots with a spring timing got fertilized prior to the first kernza harvest. If any of that N remains in the soil and rolls over into the next year, it will make spring N plots look higher yielding then they are.
-
-At R100 and Staples, this effect will be diluted by the summer applied N
-
-\newpage
-
 # Datasets
 
-```{r, include=F}
+```{r, include=T}
 
-dat_staples %>% 
-  # group_by(stand.age) %>% 
-  group_by(treatment) %>% 
-  summarise(n=n())
-dat_r100%>% 
-  # group_by(stand.age) %>% 
-  group_by(treatment) %>% 
-  summarise(n=n())
-dat_v17 %>% 
-  # group_by(stand.age) %>% 
-  group_by(treatment) %>% 
-  summarise(n=n())
+# this dataset is still not fully tested for accuracy yet. 
+
+dat_new %>% 
+  dplyr::select(-c(cum_n_harvestreset)) %>%
+  mutate(`cumulative N prior to harvest` = fall+spring+summer,.before=yield.kgperha) %>% 
+  arrange(id) %>% 
+  head(10) %>% 
+  knitr::kable(
+    caption = "first 10 rows of new data frame used for analysis"
+  )
 
 ```
 
-+----------+------------+----------+---------------------------------------+---------+
-| location | stand.ages | n        | treatments                            | n       |
-+==========+============+==========+=======================================+=========+
-| Staples  | 1,2,3      | 54,54,54 | n=18, same as r100                    | 9       |
-+----------+------------+----------+---------------------------------------+---------+
-| R100     | 2,3        | 54,54    | n=18; same as staples                 | 6       |
-+----------+------------+----------+---------------------------------------+---------+
-| V17      | 1,2,3      | 16,16,16 | control, 80 fall, 80 split, 80 spring | 12      |
-+----------+------------+----------+---------------------------------------+---------+
-
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-| balanced datasets | name        | locations          | stand.ages | treatments                      | model                                  |
-+===================+=============+====================+============+=================================+========================================+
-| timing            | dat_timing  | Staples, V17       | 1,2,3      | control, spring only            | y\~timing X location X stand.age       |
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-| timing2           | dat_timing2 | Staples, V17, R100 | 2,3        | control, spring only, fall only | y\~timing X location X stand.age       |
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-| nrate             | dat_nrate   | Staples            | 1,2,3      | all                             | y\~updatednrate X location X stand.age |
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-| nrate older stand | dat_old     | Staples, R100      | 2,3        | all                             | y\~treatment X location X stand.age    |
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-
-+-------------------+----------------------------------------------------------------------------------------------+
-| balanced datasets | testable hypotheses                                                                          |
-+===================+==============================================================================================+
-| dat_timing        | Yields are similar regardless of fertilization                                               |
-|                   |                                                                                              |
-|                   | Yields are similar regardless of timing (treatment != control)                               |
-|                   |                                                                                              |
-|                   | Yields are similar regardless of stand.age or location                                       |
-+-------------------+----------------------------------------------------------------------------------------------+
-| dat_nrate         | yields are similar regardless of fertilization                                               |
-|                   |                                                                                              |
-|                   | yields are similar regardless of timing\*rate (treatment != control)                         |
-|                   |                                                                                              |
-|                   | Yields are similar regardless of stand.age or location                                       |
-|                   |                                                                                              |
-|                   | Yields are similar regardless of the amount of N applied prior to harvest                    |
-|                   |                                                                                              |
-|                   | Yield response to N is best modeled as no effect vs a linear, quadratic and quadratic planar |
-+-------------------+----------------------------------------------------------------------------------------------+
-| dat_old           | Yields in older stands are similar regardless of fertilization                               |
-|                   |                                                                                              |
-|                   | yields in older stands are similar regardless of timing (treatment != control)               |
-|                   |                                                                                              |
-|                   | yields in older stands are similar regardless of timing\*rate (treatment != control)         |
-|                   |                                                                                              |
-|                   | yields in older stands are similar regardless of the amount of N applied prior to harvest    |
-|                   |                                                                                              |
-|                   | yields are similar regardless of stand age and location                                      |
-+-------------------+----------------------------------------------------------------------------------------------+
-
-**Additional questions/framings**
-
-What nitrogen rate results in highest grain yield?
-
-As stand age increases, does optimal nitrogen rate increase?
-
-**Dominic's findings**
-
-R100: timing does not matter, 0-60N maximizes yield
-
-Stapes: applying N in fall near 80 lb A is best
-
-V17: fall application is best (including split)
-
-**Jesse's findings**
-
-R100: does not make a lot of sense
+| balanced datasets | name        | locations    | stand.ages | treatments           | model                                         |
+|------------|------------|------------|------------|------------|------------|
+| timing            | dat_timing  | Staples, V17 | 1,2,3      | control, spring only | y\~timing X location X stand.age              |
+| timing2           | dat_timing2 | Staples, V17 | 2,3        | control, fall only   | y\~timing X location X stand.age              |
+| timing3           |             | R100         | 2,3        | control, spring only |                                               |
+| nrate             | dat_nrate   | Staples      | 1,2,3      | all                  | y\~updatednrate X location X stand.age        |
+| nrate older stand |             | R100         | 2,3        | all                  | y\~cum_n\_harvestreset X location X stand.age |
+| cumulative yield  |             | Staples, V17 | 1,2,3      | control,spring only  |                                               |
+|                   |             |              |            |                      |                                               |
 
 \newpage
 
-# Yield estimate issue
+# Assessment
+## yield
 
-This issue was caused by converting numeric yield to a factor category and then converting it back to numeric. Very strange, but the problem is resolved
+```{r, include=T, fig.cap="Yield ranges are acceptable. Slight skew to left in R100, likely due to lodging"}
+dat_new %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin(col=1,
+           bins=10) +
+  facet_wrap(~location) 
+
+dat_new %>% 
+  group_by(location,stand.age) %>% 
+  summarise(mean = mean(na.omit(yield.kgperha)),
+            sd = sd(na.omit(yield.kgperha)),
+            n=n()) %>% 
+  mutate(mean = round(mean,0),
+         sd=round(sd,0)) %>% 
+  knitr::kable(
+    caption = "estimated yields were similar to expected yields"
+  )
+```
 
 \newpage
+
+```{r, include=T, fig.cap="Datapoints with lodging scores greater than 5 removed. Notice R100 is no longer skewed"}
+
+dat_new %>% 
+  mutate(lodging.num = lodging) %>% 
+  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
+  mutate(lodging_status = if_else(
+    lodging.num > 5, 
+    "yes",
+    "no / unknown"
+  )) %>% 
+  filter(lodging_status == "no / unknown") %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin(col=1,
+           bins=10) +
+  facet_wrap(~location)
+
+```
+
+\newpage
+
+```{r, include=T, fig.cap="V17 year 2 bucks trend of decreasing yield from year 2 to 3 and is almost 2X expected value. Bajgain et al 2020 reports MN-Clearwater across 5 MN locations that were all fertilized at 45 kg N ha in spring"}
+
+# from Bajgain 2020
+# MN clearwater performance estimated from figure 3
+# kg per ha
+# fertilized over 45 kg ha
+
+tibble(
+  location = "Bajgain et al 2020",
+  stand.age = c(1,2,3),
+  mean = c(800,550,180),
+  sd = c(220,250,30),
+  n = NA
+) %>% 
+  mutate(stand.age = as.factor(stand.age))-> dat_expected
+
+dat_new %>% 
+  group_by(location,stand.age) %>% 
+  summarise(mean = mean(na.omit(yield.kgperha)),
+            sd = sd(na.omit(yield.kgperha)),
+            n=n()) %>% 
+  bind_rows(dat_expected) %>% 
+  arrange(stand.age) %>% 
+  ggplot(aes(stand.age,
+             mean,
+             fill=location)) +
+  geom_col(
+    position=position_dodge(),
+    col=1
+    ) +
+  labs(
+    y="mean grain yield (kg ha)",
+    caption = "")
+
+
+```
+
+\newpage
+
+## lodging
+
+```{r}
+dat_new %>% 
+  # glimpse()
+  ggplot(aes(lodging)) +
+  stat_bin() +
+  facet_wrap(~location)
+
+# lets get counts on lodging
+```
+
 
 # Analysis
 
-```{r}
+```{r, include=T, fig.cap="Cumulative yield response to cumulative N application suggests R100 behaves differently than other sites. R100 shows no N response with and without lodging scores > 5 in dataset. This figure shows dataset where lodging greater than 5 was filtered out. Not fair including R100 in cumulative yield considering it has only 2 yield vs 3 for V17 and Staples, but amazing control yielded almost as much as Staples in 2 vs 3 years"}
 
-dat_v17_tiny %>%
-  bind_rows(dat_staples_tiny) -> dat_timing
-
-dat_staples -> dat_nrate
-
-dat_r100 %>%
-  bind_rows(dat_staples) %>%
-  filter(stand.age != "1") -> dat_old
-
+dat_new %>% 
+  mutate(lodging.num = lodging) %>% 
+  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
+  mutate(lodging_status = if_else(
+    lodging.num > 5, 
+    "yes",
+    "no / unknown"
+  )) %>% 
+  filter(lodging_status == "no / unknown") %>% 
+  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
+  group_by(location,id) %>% 
+  summarise(cumn_total=sum(fall+spring+fall),
+            cumyield_total = sum(yield.kgperha
+                                 # na.rm = T #V17 101 has missing yield in year2
+                                 ),
+            n=n())  %>% 
+  # distinct(n)
+  ggplot(aes(
+    cumn_total,
+    cumyield_total,
+    col=location
+  )) +
+  stat_summary(geom="line") +
+  stat_summary() +
+  labs(caption = "")
 ```
 
-## Dat_timing
+\newpage
 
-```{r no fall}
+```{r, echo=T, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
 
-dat_timing %>%
-  filter(timing != "fall") %>%
-  lm(yield.kgperha~timing*stand.age*location,
-     .
-     ) %>%
-  # anova()
-  emmeans(~timing)
-
-```
-
-We reject Ho that yields are similar between plots that were and were no fertilized in the spring across all 3 years at V17 and R100.
-
-```{r fall and spring but only years 2 and 3}
-
-# we need to add in R100 now
-
-dat_timing %>%
-  filter(stand.age != "1") %>%
-  lm(yield.kgperha~timing*stand.age*location,
-     .
-     ) %>%
-  anova()
-  # emmeans(~timing)
-
-
-```
-
-```{r}
-## Mixed effect models don't work here
-# Block explains nothing and locations are too few to treat as random
-
-# lmer(
-#   yield.kgperha~timing*stand.age+
-#     (1|location/block),
-#   dat_timing
-# ) %>%
-#   car::Anova()
-
-
-dat_timing %>%
-  # distinct(location)
-  # filter(location=="Staples") %>%
-  filter(location=="RSMT V17") %>%
-  lm(
-    # yield.kgperha~timing*location*stand.age,
-    yield.kgperha~timing*stand.age,
-    .
-  ) %>%
-  # summary()
-  anova()
-  # emmeans(~timing*stand.age) %>%
-  # cld(Letters=letters, reverse=T)
-
-# 3-way interaction with location and stand.age
-# staples interaction between timing and stand age
-
-# interaction
-dat_timing %>%
-  filter(location=="Staples") %>%
-  # filter(location=="RSMT V17") %>%
-  ggplot(aes(timing,yield.kgperha,
+dat_new  %>%
+  mutate(lodging.num = as.numeric(lodging)) %>% 
+  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
+  mutate(lodging_status = if_else(
+    lodging.num > 5, 
+    "yes",
+    "no / unknown"
+  )) %>% 
+  ggplot(aes(fall+spring+summer,yield.kgperha,
              group = stand.age,
-             col=stand.age)) +
-  stat_summary(geom = "line")
-
-# This interaction is due to year1 fall essentially being a control
-
-dat_timing %>%
-  filter(stand.age != "1" | timing != "fall") %>%
-  filter(location == "Staples") %>%
-  # ggplot(aes(timing,yield.kgperha,
-  #            group = stand.age,
-  #            color=stand.age)) +
-  # stat_summary(geom = "line")
-  lm(
-    yield.kgperha~timing*stand.age,
-    .
-  ) %>%
-  anova()
+             col=stand.age,
+             shape = lodging_status) )+
+  geom_point(alpha=.5) +
+  stat_summary(
+    geom="line"
+  ) +
+  facet_wrap(~location) +
+  labs(caption = "lodging score greater than 5 was considered lodging")
 
 
 ```
 
-+--------------+--------------+---------------------------+--------------+
-| dataset      | location     | fixed effects             | p-value      |
-+==============+==============+===========================+==============+
-| dat_timing   | combined     | timing:location:stand.age | \*\*         |
-+--------------+--------------+---------------------------+--------------+
-| dat_timing   | staples      | timing                    | \*\*         |
-+--------------+--------------+---------------------------+--------------+
-| dat_timing   | staples      | stand.age                 | \*\*\*       |
-+--------------+--------------+---------------------------+--------------+
-| dat_timing   | staples      | timing\*stand.age         | \*           |
-+--------------+--------------+---------------------------+--------------+
-| dat_timing   | v17          | timing                    | \*\*\*       |
-+--------------+--------------+---------------------------+--------------+
-| dat_timing   | v17          | stand.age                 | \*\*\*       |
-+--------------+--------------+---------------------------+--------------+
-| dat_timing   | v17          | timing\*stand.age         | NS           |
-+--------------+--------------+---------------------------+--------------+
-
-The effects of timing and stand age were not consistent across sites, and required each site be analyzed separately.
-
-*Yields are similar regardless of fertilization*
-
-Staples: there is an interaction between the effect of fertilization and stand.age.
-
-R100:
-
-Yields are similar regardless of timing (treatment != control)
-
-Yields are similar regardless of stand.age or location
+\newpage
