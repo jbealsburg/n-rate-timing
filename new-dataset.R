@@ -161,4 +161,15 @@ dat_v172 %>%
   bind_rows(dat_r1002) %>% 
   bind_rows(dat_staples2) %>% 
   dplyr::select(-gross_rate) %>% 
-  mutate(cumn = fall+spring+summer)-> dat_new
+  mutate(
+    across(
+      starts_with("height"),
+      as.numeric
+    )) %>% 
+  mutate(lodging=as.numeric(lodging)) %>% 
+  mutate(height = (height_1+height_2+height_3+height_4+height_5)/5) %>% 
+  dplyr::select(-c(height_1,height_2,height_3,height_4,height_5)) %>% 
+  dplyr::select(location,stand.age, id, treatment,fall,spring,summer,yield.kgperha,lodging,height) %>% 
+  mutate(cum_n_harvestreset = fall+spring+summer)-> dat_new
+
+rm(dat_v172,dat_r1002,dat_staples2)
