@@ -7,16 +7,12 @@ author:
 - Craig Scheaffer
 - Jacob Jungers
 date: "`r format(Sys.time(), '%B %d, %Y')`"
-keywords:
-  - key
-  - dictionary
-  - word
 abstract: Wheatgrass is a new perennial grain crop in Minnesota. We established wheatgrass stands at 3 locations and then applied different rates of nitrogen fertilizer at different times in the growing season. We recorded grain yield, height and lodging over 3 years. Wheatgrass yields ranged from 1 to 130 kg ha-1 yr-1. When fertilized, yields were 81% greater. The extent to which yields differed among the rates and timings of N fertilizer applied was not consistent across sites nor stand age. The variability inherent in estimating yields from kernza stands with small quadrats makes drawing conclusions difficult without many sites and years. We hope the dataset and confidence intervals presented here can be useful in future research in understanding the role of N in provisioning more grain yield from this new perennial crop in Minnesota. 
 output:
   # word_document: 
   pdf_document:
     fig_caption: yes
-    keep_tex: yes
+    # keep_tex: yes
     latex_engine: pdflatex
   html_document:
     df_print: paged
@@ -32,6 +28,7 @@ header-includes:
 editor_options: 
   chunk_output_type: console
 ---
+
 
 ```{r, include=F}
 knitr::opts_chunk$set(include = F, warning=F,
@@ -69,20 +66,20 @@ dat_v17 %>%
 
 
 
-dat_v17 %>% 
-  bind_rows(dat_r100) %>% 
-  bind_rows(dat_staples) %>% 
-  group_by(location, treatment) %>% 
-  summarise(n=n()) %>% 
-  knitr::kable(
-    caption = "location X treatment"
-  )
+# dat_v17 %>% 
+#   bind_rows(dat_r100) %>% 
+#   bind_rows(dat_staples) %>% 
+#   group_by(location, treatment) %>% 
+#   summarise(n=n()) %>% 
+#   knitr::kable(
+#     caption = "location X treatment"
+#   )
 
 ```
 
 \newpage
 
-```{r table practice, include=T, echo=F}
+```{r table practice, include=F, echo=F}
 
 dat_v17 %>% 
   bind_rows(dat_r100) %>% 
@@ -106,6 +103,7 @@ $$
 Y \sim X\beta_0 + X\beta_1 + \epsilon
 $$
 \newpage
+
 # Methods
 
 Split application treatments received 20, 40, 60, or 80 lb ac-1 of nitrogen in the summer month of May or June and all received 60 lb ac-1 of nitrogen in either the fall or spring. Rosemount V-17 did not contain different nitrogen application rates, since all fertility treatments received 80 total lb ac-1. The split treatment at Rosemount V-17 was split in the fall and spring and did not receive a summer application of fertilizer which Rosemount R-100 and Staples did. Grain yield data was unavailable for the first stand age at Rosemount R-100. Lodging and height data are missing from some stand ages at research sites.
