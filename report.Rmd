@@ -33,7 +33,7 @@ Originally, I wanted to combine data sets to answer different questions, but iss
 
 Due to differences across sites, it may make the most sense to analyze sites separately and see if a consistent pattern emerges. This is what Dominic did.
 
-similar to Dominic, created a new dataframe where N applied is distributed across timings to create a consistent format across sites
+Similar to Dominic, I created a new dataframe where N applied is distributed across timings to create a consistent data formatting across sites, allowing us to create a single dataframe for all sites. 
 
 \newpage
 
@@ -51,6 +51,22 @@ dat_new %>%
   )
 
 ```
+
+```{r}
+# sum across heights
+
+dat_new %>% 
+  # colnames()
+  mutate(
+    across(
+      starts_with("height"),
+      as.numeric
+    )
+  ) %>% 
+  glimpse()
+  mutate(height = sum(height_1,height_2))
+```
+
 
 \newpage
 
