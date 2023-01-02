@@ -1,0 +1,239 @@
+---
+title: overflow from n-rate timing report
+author: jesse puka-beals
+---
+
+```{r}
+
+```
+
+## treatment table
+
+| location | harvest | timing[^1] | N applied prior to harvest |
+|----------|---------|------------|----------------------------|
+| V17      | 1       | fall       | no                         |
+| V17      | 1       | spring     | yes                        |
+| V17      | 1       | summer     | no                         |
+| V17      | 2       | fall       | yes                        |
+| V17      | 2       | spring     | yes                        |
+| V17      | 2       | summer     | no                         |
+| V17      | 3       | fall       | yes                        |
+| V17      | 3       | spring     | yes                        |
+| V17      | 3       | summer     | no                         |
+| Staples  | 1       | fall       | no                         |
+| Staples  | 1       | spring     | yes                        |
+| Staples  | 1       | summer     | yes                        |
+| Staples  | 2       | fall       | yes                        |
+| Staples  | 2       | spring     | yes                        |
+| Staples  | 2       | summer     | yes                        |
+| Staples  | 3       | fall       | yes                        |
+| Staples  | 3       | spring     | yes                        |
+| Staples  | 3       | summer     | yes                        |
+| R100     | 1       | fall       | no                         |
+| R100     | 1       | spring     | yes                        |
+| R100     | 1       | summer     | yes                        |
+| R100     | 2       | fall       | yes                        |
+| R100     | 2       | spring     | yes                        |
+| R100     | 2       | summer     | yes                        |
+| R100     | 3       | fall       | yes                        |
+| R100     | 3       | spring     | yes                        |
+| R100     | 3       | summer     | yes                        |
+
+[^1]: fall timing is applied in year prior to harvest
+
+At V17, plots with a spring timing got fertilized prior to the first kernza harvest. If any of that N remains in the soil and rolls over into the next year, it will make spring N plots look higher yielding then they are.
+
+At R100 and Staples, this effect will be diluted by the summer applied N
+
+
+
++-------------------+-------------+--------------+------------+----------------------+-----------------------------------------------+
+| balanced datasets | name        | locations    | stand.ages | treatments           | model                                         |
++===================+=============+==============+============+======================+===============================================+
+| timing            | dat_timing  | Staples, V17 | 1,2,3      | control, spring only | y\~timing X location X stand.age              |
++-------------------+-------------+--------------+------------+----------------------+-----------------------------------------------+
+| timing2           | dat_timing2 | Staples, V17 | 2,3        | control, fall only   | y\~timing X location X stand.age              |
++-------------------+-------------+--------------+------------+----------------------+-----------------------------------------------+
+| timing3           |             | R100         | 2,3        | control, spring only |                                               |
++-------------------+-------------+--------------+------------+----------------------+-----------------------------------------------+
+| nrate             | dat_nrate   | Staples      | 1,2,3      | all                  | y\~updatednrate X location X stand.age        |
++-------------------+-------------+--------------+------------+----------------------+-----------------------------------------------+
+| nrate older stand | dat_old     | R100         | 2,3        | all                  | y\~cum_n\_harvestreset X location X stand.age |
++-------------------+-------------+--------------+------------+----------------------+-----------------------------------------------+
+| cumulative yield  |             | Staples, V17 | 1,2,3      | control,spring only  |                                               |
++-------------------+-------------+--------------+------------+----------------------+-----------------------------------------------+
+|                   |             |              |            |                      |                                               |
++-------------------+-------------+--------------+------------+----------------------+-----------------------------------------------+
+
++-------------------+----------------------------------------------------------------------------------------------+
+| balanced datasets | testable hypotheses                                                                          |
++===================+==============================================================================================+
+| dat_timing        | Yields are similar regardless of fertilization                                               |
+|                   |                                                                                              |
+|                   | Yields are similar regardless of timing (treatment != control)                               |
+|                   |                                                                                              |
+|                   | Yields are similar regardless of stand.age or location                                       |
++-------------------+----------------------------------------------------------------------------------------------+
+| dat_nrate         | yields are similar regardless of fertilization                                               |
+|                   |                                                                                              |
+|                   | yields are similar regardless of timing\*rate (treatment != control)                         |
+|                   |                                                                                              |
+|                   | Yields are similar regardless of stand.age or location                                       |
+|                   |                                                                                              |
+|                   | Yields are similar regardless of the amount of N applied prior to harvest                    |
+|                   |                                                                                              |
+|                   | Yield response to N is best modeled as no effect vs a linear, quadratic and quadratic planar |
++-------------------+----------------------------------------------------------------------------------------------+
+| dat_old           | Yields in older stands are similar regardless of fertilization                               |
+|                   |                                                                                              |
+|                   | yields in older stands are similar regardless of timing (treatment != control)               |
+|                   |                                                                                              |
+|                   | yields in older stands are similar regardless of timing\*rate (treatment != control)         |
+|                   |                                                                                              |
+|                   | yields in older stands are similar regardless of the amount of N applied prior to harvest    |
+|                   |                                                                                              |
+|                   | yields are similar regardless of stand age and location                                      |
++-------------------+----------------------------------------------------------------------------------------------+
+
+**Additional questions/framings**
+
+What nitrogen rate results in highest grain yield?
+
+As stand age increases, does optimal nitrogen rate increase?
+
+**Dominic's findings**
+
+R100: timing does not matter, 0-60N maximizes yield
+
+Staples: applying N in fall near 80 lb A is best
+
+V17: fall application is best (including split)
+
+**Jesse's findings**
+
+R100: does not make a lot of sense
+
+# Old analysis
+
+```{r}
+
+dat_v17_tiny %>%
+  bind_rows(dat_staples_tiny) -> dat_timing
+
+dat_staples -> dat_nrate
+
+dat_r100 %>%
+  bind_rows(dat_staples) %>%
+  filter(stand.age != "1") -> dat_old
+
+```
+
+## Dat_timing
+
+```{r no fall}
+
+dat_timing %>%
+  filter(timing != "fall") %>%
+  lm(yield.kgperha~timing*stand.age*location,
+     .
+     ) %>%
+  # anova()
+  emmeans(~timing)
+
+```
+
+We reject Ho that yields are similar between plots that were and were no fertilized in the spring across all 3 years at V17 and R100.
+
+```{r fall and spring but only years 2 and 3}
+
+# we need to add in R100 now
+
+dat_timing %>%
+  filter(stand.age != "1") %>%
+  lm(yield.kgperha~timing*stand.age*location,
+     .
+     ) %>%
+  anova()
+  # emmeans(~timing)
+
+
+```
+
+```{r}
+## Mixed effect models don't work here
+# Block explains nothing and locations are too few to treat as random
+
+# lmer(
+#   yield.kgperha~timing*stand.age+
+#     (1|location/block),
+#   dat_timing
+# ) %>%
+#   car::Anova()
+
+
+dat_timing %>%
+  # distinct(location)
+  # filter(location=="Staples") %>%
+  filter(location=="RSMT V17") %>%
+  lm(
+    # yield.kgperha~timing*location*stand.age,
+    yield.kgperha~timing*stand.age,
+    .
+  ) %>%
+  # summary()
+  anova()
+  # emmeans(~timing*stand.age) %>%
+  # cld(Letters=letters, reverse=T)
+
+# 3-way interaction with location and stand.age
+# staples interaction between timing and stand age
+
+# interaction
+dat_timing %>%
+  filter(location=="Staples") %>%
+  # filter(location=="RSMT V17") %>%
+  ggplot(aes(timing,yield.kgperha,
+             group = stand.age,
+             col=stand.age)) +
+  stat_summary(geom = "line")
+
+# This interaction is due to year1 fall essentially being a control
+
+dat_timing %>%
+  filter(stand.age != "1" | timing != "fall") %>%
+  filter(location == "Staples") %>%
+  # ggplot(aes(timing,yield.kgperha,
+  #            group = stand.age,
+  #            color=stand.age)) +
+  # stat_summary(geom = "line")
+  lm(
+    yield.kgperha~timing*stand.age,
+    .
+  ) %>%
+  anova()
+
+
+```
+
+| dataset    | location | fixed effects             | p-value |
+|------------|----------|---------------------------|---------|
+| dat_timing | combined | timing:location:stand.age | \*\*    |
+| dat_timing | staples  | timing                    | \*\*    |
+| dat_timing | staples  | stand.age                 | \*\*\*  |
+| dat_timing | staples  | timing\*stand.age         | \*      |
+| dat_timing | v17      | timing                    | \*\*\*  |
+| dat_timing | v17      | stand.age                 | \*\*\*  |
+| dat_timing | v17      | timing\*stand.age         | NS      |
+
+The effects of timing and stand age were not consistent across sites, and required each site be analyzed separately.
+
+*Yields are similar regardless of fertilization*
+
+Staples: there is an interaction between the effect of fertilization and stand.age.
+
+R100:
+
+Yields are similar regardless of timing (treatment != control)
+
+Yields are similar regardless of stand.age or location
+
