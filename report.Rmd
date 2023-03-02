@@ -482,3 +482,5 @@ R100:
 Yields are similar regardless of timing (treatment != control)
 
 Yields are similar regardless of stand.age or location
+
+
