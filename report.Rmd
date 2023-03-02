@@ -2,7 +2,6 @@
 title: n-rate timing analysis report
 author: jesse puka-beals
 date: "`r Sys.Date()`"
-# date: "Dec 19, 2022"
 output:
   pdf_document
 editor_options: 
@@ -28,13 +27,13 @@ theme_set(theme_bw())
 
 # Summary
 
-We need to figure out which data sets to use for comparisons. 
+We need to figure out which data sets to use for comparisons.
 
-Originally, I wanted to combine datasets to answer different questions, but issues with stand age prevent this
+Originally, I wanted to combine data sets to answer different questions, but issues with stand age prevent this
 
-Due to differences across sites, it may make the most sense to analyze sites separately and see if a consistent pattern emerges. This is what Dominic did. 
+Due to differences across sites, it may make the most sense to analyze sites separately and see if a consistent pattern emerges. This is what Dominic did.
 
-similar to Dominic, created a new dataframe where N applied is distributed across timings to create a consistent format across sites
+Similar to Dominic, I created a new dataframe where N applied is distributed across timings to create a consistent data formatting across sites, allowing us to create a single dataframe for all sites. 
 
 \newpage
 
@@ -44,8 +43,8 @@ similar to Dominic, created a new dataframe where N applied is distributed acros
 
 dat_new %>% 
   # colnames()
-  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,cumn) %>% 
-  mutate(`cumulative N` = fall+spring+summer) %>% 
+  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
+  mutate(`cumulative N prior to harvest` = fall+spring+summer,.before=yield.kgperha) %>% 
   head(10) %>% 
   knitr::kable(
     caption = "first 10 rows of new data frame used for analysis"
@@ -53,18 +52,84 @@ dat_new %>%
 
 ```
 
-\newpage
-```{r, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
+```{r}
+# sum across heights
 
-dat_new  %>% 
+dat_new %>% 
+  # colnames()
+  mutate(
+    across(
+      starts_with("height"),
+      as.numeric
+    )
+  ) %>% 
+  glimpse()
+  mutate(height = sum(height_1,height_2))
+```
+
+
+\newpage
+<<<<<<< HEAD
+```{r, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
+=======
+
+```{r, include=T, fig.cap="Cumulative yield response to cumulative N application"}
+
+dat_new %>% 
+  mutate(lodging.num = as.numeric(lodging)) %>% 
+  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
+  mutate(lodging_status = if_else(
+    lodging.num > 5, 
+    "yes",
+    "no / unknown"
+  )) %>% 
+  filter(lodging_status == "no / unknown") %>% 
+  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
+  mutate(cumn_priortoharvest = fall+spring+summer) %>% 
+  group_by(location,id) %>% 
+  # summarise(cumn_total = fall+spring+summer)
+  # summarise(cumn_total = cumsum(fall+spring+summer))
+  summarise(cumn_total=sum(fall+spring+fall),
+            cumyield_total = sum(yield.kgperha
+                                 # na.rm = T #V17 101 has missing yield in year2
+                                 ))  %>% 
+  # knitr::kable()
+  ggplot(aes(
+    cumn_total,
+    cumyield_total,
+    col=location
+  )) +
+  stat_summary(geom="line") +
+  labs(caption = "R100 shows no N response with and without lodging scores > 5 in dataset
+       this shows dataset where lodging greater than 5 was filtered out")
+```
+
+
+\newpage
+
+```{r, echo=T, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
+>>>>>>> c06ce52c8356aa8bfc9b20ccfee4762512818420
+
+dat_new  %>%
+  mutate(lodging.num = as.numeric(lodging)) %>% 
+  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
+  mutate(lodging_status = if_else(
+    lodging.num > 5, 
+    "yes",
+    "no / unknown"
+  )) %>% 
   ggplot(aes(fall+spring+summer,yield.kgperha,
              group = stand.age,
-             col=stand.age) )+
-  geom_point() +
+             col=stand.age,
+             shape = lodging_status) )+
+  geom_point(alpha=.5) +
   stat_summary(
     geom="line"
   ) +
-  facet_wrap(~location)
+  facet_wrap(~location) +
+  labs(caption = "lodging score greater than 5 was considered lodging")
+
+
 ```
 
 \newpage
@@ -119,17 +184,17 @@ dat_new %>%
 
 # Methods
 
-Yield data was collected from 3 sites. All sites have control plots. 
+Yield data was collected from 3 sites. All sites have control plots.
 
 V17: treatments initiated in spring of year 1, 3 years of yield data. No summer N, fall (80N), spring (80N) or split (40N spring, 40N fall)
 
-R100: treatments initiated in spring of year 2, 2 years of yield data. Spring and fall N at 60N, summer N varies. 
+R100: treatments initiated in spring of year 2, 2 years of yield data. Spring and fall N at 60N, summer N varies.
 
-staples: treatments initiated in spring of year 1, 3 years of yield data. Spring and fall N at 60N, summer N varies. 
+staples: treatments initiated in spring of year 1, 3 years of yield data. Spring and fall N at 60N, summer N varies.
 
-Sites are confounded by planting year, stand.age, soil type, row spacing. 
+Sites are confounded by planting year, stand.age, soil type, row spacing.
 
-Fall treatments only begin to occur in year 2. 
+Fall treatments only begin to occur in year 2.
 
 \newpage
 
@@ -149,7 +214,6 @@ dat_v17 %>%
     caption = "year X location X stand.age"
   )
 ```
-
 
 ```{r, include=T, echo=F}
 
@@ -182,68 +246,67 @@ dat_v17 %>%
 
 ```
 
-
 \newpage
 
 ## treatment table
 
-+------------+------------+------------+----------------------------+
-| location   | harvest    | timing[^1] | N applied prior to harvest |
-+============+============+============+============================+
-| V17        | 1          | fall       | no                         |
-+------------+------------+------------+----------------------------+
-| V17        | 1          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| V17        | 1          | summer     | no                         |
-+------------+------------+------------+----------------------------+
-| V17        | 2          | fall       | yes                        |
-+------------+------------+------------+----------------------------+
-| V17        | 2          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| V17        | 2          | summer     | no                         |
-+------------+------------+------------+----------------------------+
-| V17        | 3          | fall       | yes                        |
-+------------+------------+------------+----------------------------+
-| V17        | 3          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| V17        | 3          | summer     | no                         |
-+------------+------------+------------+----------------------------+
-| Staples    | 1          | fall       | no                         |
-+------------+------------+------------+----------------------------+
-| Staples    | 1          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| Staples    | 1          | summer     | yes                        |
-+------------+------------+------------+----------------------------+
-| Staples    | 2          | fall       | yes                        |
-+------------+------------+------------+----------------------------+
-| Staples    | 2          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| Staples    | 2          | summer     | yes                        |
-+------------+------------+------------+----------------------------+
-| Staples    | 3          | fall       | yes                        |
-+------------+------------+------------+----------------------------+
-| Staples    | 3          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| Staples    | 3          | summer     | yes                        |
-+------------+------------+------------+----------------------------+
-| R100       | 1          | fall       | no                         |
-+------------+------------+------------+----------------------------+
-| R100       | 1          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| R100       | 1          | summer     | yes                        |
-+------------+------------+------------+----------------------------+
-| R100       | 2          | fall       | yes                        |
-+------------+------------+------------+----------------------------+
-| R100       | 2          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| R100       | 2          | summer     | yes                        |
-+------------+------------+------------+----------------------------+
-| R100       | 3          | fall       | yes                        |
-+------------+------------+------------+----------------------------+
-| R100       | 3          | spring     | yes                        |
-+------------+------------+------------+----------------------------+
-| R100       | 3          | summer     | yes                        |
-+------------+------------+------------+----------------------------+
++-------------+-------------+-------------+----------------------------+
+| location    | harvest     | timing[^1]  | N applied prior to harvest |
++=============+=============+=============+============================+
+| V17         | 1           | fall        | no                         |
++-------------+-------------+-------------+----------------------------+
+| V17         | 1           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| V17         | 1           | summer      | no                         |
++-------------+-------------+-------------+----------------------------+
+| V17         | 2           | fall        | yes                        |
++-------------+-------------+-------------+----------------------------+
+| V17         | 2           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| V17         | 2           | summer      | no                         |
++-------------+-------------+-------------+----------------------------+
+| V17         | 3           | fall        | yes                        |
++-------------+-------------+-------------+----------------------------+
+| V17         | 3           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| V17         | 3           | summer      | no                         |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 1           | fall        | no                         |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 1           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 1           | summer      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 2           | fall        | yes                        |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 2           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 2           | summer      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 3           | fall        | yes                        |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 3           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| Staples     | 3           | summer      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| R100        | 1           | fall        | no                         |
++-------------+-------------+-------------+----------------------------+
+| R100        | 1           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| R100        | 1           | summer      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| R100        | 2           | fall        | yes                        |
++-------------+-------------+-------------+----------------------------+
+| R100        | 2           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| R100        | 2           | summer      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| R100        | 3           | fall        | yes                        |
++-------------+-------------+-------------+----------------------------+
+| R100        | 3           | spring      | yes                        |
++-------------+-------------+-------------+----------------------------+
+| R100        | 3           | summer      | yes                        |
++-------------+-------------+-------------+----------------------------+
 
 [^1]: fall timing is applied in year prior to harvest
 
@@ -349,7 +412,6 @@ R100: does not make a lot of sense
 This issue was caused by converting numeric yield to a factor category and then converting it back to numeric. Very strange, but the problem is resolved
 
 \newpage
-
 
 # Analysis
 
