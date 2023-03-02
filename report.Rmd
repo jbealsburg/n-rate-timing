@@ -54,7 +54,7 @@ dat_new %>%
 ```
 
 \newpage
-```{r, echo=T, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
+```{r, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
 
 dat_new  %>% 
   ggplot(aes(fall+spring+summer,yield.kgperha,
