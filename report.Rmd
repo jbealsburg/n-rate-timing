@@ -25,158 +25,26 @@ theme_set(theme_bw())
 
 ```
 
-# Summary
+# Introduction
 
-We need to figure out which data sets to use for comparisons.
+Sites are all different with treatments. Staples makes most sense.
 
-Originally, I wanted to combine data sets to answer different questions, but issues with stand age prevent this
+How does cumulative N impact yield?
 
-Due to differences across sites, it may make the most sense to analyze sites separately and see if a consistent pattern emerges. This is what Dominic did.
+Does timing of N change this impact?
 
-Similar to Dominic, I created a new dataframe where N applied is distributed across timings to create a consistent data formatting across sites, allowing us to create a single dataframe for all sites. 
+What might've caused differences among sites?
 
-\newpage
+# Expected Findings
 
-```{r, include=T}
+Yields should be ~500 kg ha, going down in third year
 
-# this dataset is still not fully tested for accuracy yet. 
+Yields should be higher in plots receiving more N
 
-dat_new %>% 
-  # colnames()
-  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
-  mutate(`cumulative N prior to harvest` = fall+spring+summer,.before=yield.kgperha) %>% 
-  head(10) %>% 
-  knitr::kable(
-    caption = "first 10 rows of new data frame used for analysis"
-  )
-
-```
-
-```{r, eval=F}
-# sum across heights
-
-dat_new %>% 
-  # colnames()
-  mutate(
-    across(
-      starts_with("height"),
-      as.numeric
-    )
-  ) %>% 
-  glimpse()
-  mutate(height = sum(height_1,height_2))
-```
+No idea if timing matters and no idea if it's consistent
 
 
 \newpage
-
-```{r, include=T, fig.cap="Cumulative yield response to cumulative N application"}
-
-dat_new %>% 
-  mutate(lodging.num = as.numeric(lodging)) %>% 
-  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
-  mutate(lodging_status = if_else(
-    lodging.num > 5, 
-    "yes",
-    "no / unknown"
-  )) %>% 
-  filter(lodging_status == "no / unknown") %>% 
-  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
-  mutate(cumn_priortoharvest = fall+spring+summer) %>% 
-  group_by(location,id) %>% 
-  # summarise(cumn_total = fall+spring+summer)
-  # summarise(cumn_total = cumsum(fall+spring+summer))
-  summarise(cumn_total=sum(fall+spring+fall),
-            cumyield_total = sum(yield.kgperha
-                                 # na.rm = T #V17 101 has missing yield in year2
-                                 ))  %>% 
-  # knitr::kable()
-  ggplot(aes(
-    cumn_total,
-    cumyield_total,
-    col=location
-  )) +
-  stat_summary(geom="line") +
-  labs(caption = "R100 shows no N response with and without lodging scores > 5 in dataset
-       this shows dataset where lodging greater than 5 was filtered out")
-```
-
-
-\newpage
-
-```{r, echo=T, include=T, fig.cap="yield response to the combination of fall spring and summer N"}
-
-dat_new  %>%
-  mutate(lodging.num = as.numeric(lodging)) %>% 
-  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
-  mutate(lodging_status = if_else(
-    lodging.num > 5, 
-    "yes",
-    "no / unknown"
-  )) %>% 
-  ggplot(aes(fall+spring+summer,yield.kgperha,
-             group = stand.age,
-             col=stand.age,
-             shape = lodging_status) )+
-  geom_point(alpha=.5) +
-  stat_summary(
-    geom="line"
-  ) +
-  facet_wrap(~location) +
-  labs(caption = "lodging score greater than 5 was considered lodging")
-
-
-```
-
-\newpage
-
-```{r,include=T, fig.cap="yield response to fertilizer within timing"}
-dat_new  %>% 
-  ggplot(aes(fall,yield.kgperha,
-             group = stand.age,
-             col=stand.age) )+
-  geom_point() +
-  stat_summary(
-    geom="line"
-  ) +
-  facet_wrap(~location)
-
-dat_new  %>% 
-  ggplot(aes(spring,yield.kgperha,
-             group = stand.age,
-             col=stand.age) )+
-  geom_point() +
-  stat_summary(
-    geom="line"
-  ) +
-  facet_wrap(~location)
-
-dat_new  %>% 
-  ggplot(aes(summer,yield.kgperha,
-             group = stand.age,
-             col=stand.age) )+
-  geom_point() +
-  stat_summary(
-    geom="line"
-  ) +
-  facet_wrap(~location)
-```
-
-\newpage
-
-```{r}
-
-dat_new %>% 
-  pivot_longer(
-    c(fall,spring,summer)
-  ) %>% 
-  # View()
-  ggplot(aes(value,yield.kgperha,
-             color=name,
-             shape = stand.age)) +
-  geom_point() +
-  facet_wrap(~location)
-```
 
 # Methods
 
@@ -314,6 +182,33 @@ At R100 and Staples, this effect will be diluted by the summer applied N
 
 # Datasets
 
+
+```{r, dataset}
+
+dat_new %>%
+  mutate(across(starts_with("height"),
+                as.numeric)) %>%
+  mutate(height = (height_1 + height_2 + height_3 + height_4 + height_5) /
+           5) %>%
+  dplyr::select(location,
+                stand.age,
+                id,
+                fall,
+                spring,
+                summer,
+                yield.kgperha,
+                lodging,
+                height) %>%
+  mutate(cumn = fall + spring + summer,
+         .before = yield.kgperha) %>%
+  mutate(lodging = as.numeric(lodging)) -> dat_new2
+
+dat_new2 %>% 
+  glimpse()
+```
+
+
+
 ```{r, include=F}
 
 dat_staples %>% 
@@ -403,9 +298,84 @@ R100: does not make a lot of sense
 
 \newpage
 
-# Yield estimate issue
+# Yield
 
-This issue was caused by converting numeric yield to a factor category and then converting it back to numeric. Very strange, but the problem is resolved
+## Yield
+
+### with lodging considered
+
+\newpage
+
+```{r, include=T, fig.cap="Cumulative yield response to cumulative N application"}
+
+dat_new %>% 
+  mutate(lodging.num = as.numeric(lodging)) %>% 
+  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
+  mutate(lodging_status = if_else(
+    lodging.num > 5, 
+    "yes",
+    "no / unknown"
+  )) %>% 
+  filter(lodging_status == "no / unknown") %>% 
+  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
+  mutate(cumn_priortoharvest = fall+spring+summer) %>% 
+  group_by(location,id) %>% 
+  # summarise(cumn_total = fall+spring+summer)
+  # summarise(cumn_total = cumsum(fall+spring+summer))
+  summarise(cumn_total=sum(fall+spring+fall),
+            cumyield_total = sum(yield.kgperha
+                                 # na.rm = T #V17 101 has missing yield in year2
+                                 ))  %>% 
+  # knitr::kable()
+  ggplot(aes(
+    cumn_total,
+    cumyield_total,
+    col=location
+  )) +
+  stat_summary(geom="line") +
+  labs(caption = "R100 shows no N response with and without lodging scores > 5 in dataset
+       this shows dataset where lodging greater than 5 was filtered out")
+```
+
+
+
+
+## Cumulative yield
+
+\newpage
+
+```{r, include=T, fig.cap="Cumulative yield response to cumulative N application"}
+
+dat_new %>% 
+  mutate(lodging.num = as.numeric(lodging)) %>% 
+  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
+  mutate(lodging_status = if_else(
+    lodging.num > 5, 
+    "yes",
+    "no / unknown"
+  )) %>% 
+  filter(lodging_status == "no / unknown") %>% 
+  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
+  mutate(cumn_priortoharvest = fall+spring+summer) %>% 
+  group_by(location,id) %>% 
+  # summarise(cumn_total = fall+spring+summer)
+  # summarise(cumn_total = cumsum(fall+spring+summer))
+  summarise(cumn_total=sum(fall+spring+fall),
+            cumyield_total = sum(yield.kgperha
+                                 # na.rm = T #V17 101 has missing yield in year2
+                                 ))  %>% 
+  # knitr::kable()
+  ggplot(aes(
+    cumn_total,
+    cumyield_total,
+    col=location
+  )) +
+  stat_summary(geom="line") +
+  labs(caption = "R100 shows no N response with and without lodging scores > 5 in dataset
+       this shows dataset where lodging greater than 5 was filtered out")
+```
+
+
 
 \newpage
 
