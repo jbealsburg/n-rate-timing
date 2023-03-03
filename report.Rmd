@@ -21,6 +21,7 @@ library(multcomp)
 source("nrate_eda_9dec2022.R")
 source("new-dataset.R")
 
+
 theme_set(theme_bw())
 
 ```
@@ -43,10 +44,29 @@ Yields should be higher in plots receiving more N
 
 No idea if timing matters and no idea if it's consistent
 
+## Preliminary findings from exploratory analyses
+
+**Dominic's findings**
+
+R100: timing does not matter, 0-60N maximizes yield
+
+Staples: applying N in fall near 80 lb A is best
+
+V17: fall application is best (including split)
+
+**Jesse's findings**
+
+R100: does not make a lot of sense
+
+# Research questions
+
+What nitrogen rate results in highest grain yield?
+
+As stand age increases, does optimal nitrogen rate increase?
+
 
 \newpage
-
-# Methods
+# Method notes
 
 Yield data was collected from 3 sites. All sites have control plots.
 
@@ -58,7 +78,8 @@ staples: treatments initiated in spring of year 1, 3 years of yield data. Spring
 
 Sites are confounded by planting year, stand.age, soil type, row spacing.
 
-Fall treatments only begin to occur in year 2.
+Fall treatments begin after first kernza harvest.
+
 
 \newpage
 
@@ -96,7 +117,6 @@ dat_v17 %>%
 \newpage
 
 ```{r, include=T, echo=F}
-source("nrate_eda_9dec2022.R")
 
 dat_v17 %>% 
   bind_rows(dat_r100) %>% 
@@ -208,99 +228,69 @@ dat_new2 %>%
 ```
 
 
-
-```{r, include=F}
-
-dat_staples %>% 
-  # group_by(stand.age) %>% 
-  group_by(treatment) %>% 
-  summarise(n=n())
-dat_r100%>% 
-  # group_by(stand.age) %>% 
-  group_by(treatment) %>% 
-  summarise(n=n())
-dat_v17 %>% 
-  # group_by(stand.age) %>% 
-  group_by(treatment) %>% 
-  summarise(n=n())
-
-```
-
-+----------+------------+----------+---------------------------------------+---------+
-| location | stand.ages | n        | treatments                            | n       |
-+==========+============+==========+=======================================+=========+
-| Staples  | 1,2,3      | 54,54,54 | n=18, same as r100                    | 9       |
-+----------+------------+----------+---------------------------------------+---------+
-| R100     | 2,3        | 54,54    | n=18; same as staples                 | 6       |
-+----------+------------+----------+---------------------------------------+---------+
-| V17      | 1,2,3      | 16,16,16 | control, 80 fall, 80 split, 80 spring | 12      |
-+----------+------------+----------+---------------------------------------+---------+
-
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-| balanced datasets | name        | locations          | stand.ages | treatments                      | model                                  |
-+===================+=============+====================+============+=================================+========================================+
-| timing            | dat_timing  | Staples, V17       | 1,2,3      | control, spring only            | y\~timing X location X stand.age       |
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-| timing2           | dat_timing2 | Staples, V17, R100 | 2,3        | control, spring only, fall only | y\~timing X location X stand.age       |
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-| nrate             | dat_nrate   | Staples            | 1,2,3      | all                             | y\~updatednrate X location X stand.age |
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-| nrate older stand | dat_old     | Staples, R100      | 2,3        | all                             | y\~treatment X location X stand.age    |
-+-------------------+-------------+--------------------+------------+---------------------------------+----------------------------------------+
-
-+-------------------+----------------------------------------------------------------------------------------------+
-| balanced datasets | testable hypotheses                                                                          |
-+===================+==============================================================================================+
-| dat_timing        | Yields are similar regardless of fertilization                                               |
-|                   |                                                                                              |
-|                   | Yields are similar regardless of timing (treatment != control)                               |
-|                   |                                                                                              |
-|                   | Yields are similar regardless of stand.age or location                                       |
-+-------------------+----------------------------------------------------------------------------------------------+
-| dat_nrate         | yields are similar regardless of fertilization                                               |
-|                   |                                                                                              |
-|                   | yields are similar regardless of timing\*rate (treatment != control)                         |
-|                   |                                                                                              |
-|                   | Yields are similar regardless of stand.age or location                                       |
-|                   |                                                                                              |
-|                   | Yields are similar regardless of the amount of N applied prior to harvest                    |
-|                   |                                                                                              |
-|                   | Yield response to N is best modeled as no effect vs a linear, quadratic and quadratic planar |
-+-------------------+----------------------------------------------------------------------------------------------+
-| dat_old           | Yields in older stands are similar regardless of fertilization                               |
-|                   |                                                                                              |
-|                   | yields in older stands are similar regardless of timing (treatment != control)               |
-|                   |                                                                                              |
-|                   | yields in older stands are similar regardless of timing\*rate (treatment != control)         |
-|                   |                                                                                              |
-|                   | yields in older stands are similar regardless of the amount of N applied prior to harvest    |
-|                   |                                                                                              |
-|                   | yields are similar regardless of stand age and location                                      |
-+-------------------+----------------------------------------------------------------------------------------------+
-
-**Additional questions/framings**
-
-What nitrogen rate results in highest grain yield?
-
-As stand age increases, does optimal nitrogen rate increase?
-
-**Dominic's findings**
-
-R100: timing does not matter, 0-60N maximizes yield
-
-Stapes: applying N in fall near 80 lb A is best
-
-V17: fall application is best (including split)
-
-**Jesse's findings**
-
-R100: does not make a lot of sense
-
 \newpage
 
 # Yield
 
-## Yield
+## Yield at harvest
+
+```{r}
+dat_new2 %>% 
+  ggplot(aes(yield.kgperha)) +
+  stat_bin()
+```
+
+We expect yields around 500 kg ha. We expect some low yields in later years as stand declines or from lodging. The yields near 0 and over 1000 are a little weird. 
+
+```{r}
+dat_new2 %>% 
+  group_by(location,stand.age) %>% 
+  drop_na(yield.kgperha) %>%  # there is just a single NA in V17 second year
+  summarise(yield = mean(yield.kgperha),
+            sd = sd(yield.kgperha),
+            n=n()) 
+
+```
+
+Rosemount V17 year 2 seems very high yielding, but all values are plausible. Staples and R100 follow expected yield decline trend. Third year kernza yields seem right. 
+
+### Yield at harvest with different N amounts
+
+```{r}
+
+dat_new %>% 
+  ggplot(aes(fall+spring+summer, yield.kgperha)) +
+  stat_summary() +
+  labs(
+    caption = "put on ~40N"
+  )
+
+dat_new %>% 
+  ggplot(aes(fall+spring+summer, yield.kgperha)) +
+  stat_summary() +
+  facet_wrap(~location) +
+  labs(
+    caption = "put on around 40N"
+  )
+
+dat_new %>% 
+  ggplot(aes(fall+spring+summer, yield.kgperha,
+             col=stand.age)) +
+  stat_summary() +
+  facet_wrap(~location) +
+  labs(
+    caption = "
+    V17 I'd put on 50N in yr1, and 80N in year 2 and 3
+    R100 N rate doesn't matter, do 0N
+    Staples I'd put on 100N yr1, 70N yr2, 50N yr 3
+    "
+  )
+
+```
+
+
+
+
 
 ### with lodging considered
 
