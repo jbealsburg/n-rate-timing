@@ -146,3 +146,57 @@ dat_new %>%
   "
   )
 
+
+# Improving figure aestetics ----------------------------------------------
+
+dat_new %>% 
+  filter(location == "Staples") %>% 
+  mutate(ntiming = factor(ntiming,
+                          levels = c(
+                            "Fall",
+                            "Fall split",
+                            "Spring",
+                            "Spring split"
+                          ))) %>% 
+  filter(cumn=="80") %>%
+  filter(ntiming != "Fall split" | 
+           stand.age != 1) %>% 
+  mutate(
+    stand.age = fct_recode(stand.age,
+                           "1st year " = "1",
+                           "2nd year" = "2",
+                           "3rd year" = "3"
+    )
+  ) %>% 
+  mutate(yield.kgperha = yield.kgperha/1.121) %>% 
+  ggplot(aes(
+    x=ntiming,
+    y=yield.kgperha )) +
+  stat_summary(
+    geom = "bar",
+    col=1
+  ) +
+  facet_wrap(~stand.age) +
+  labs(
+    y= "Kernza grain yield \n(lbs per acre)",
+    x= "Timing of applying 80 lbs of N per acre",
+    caption= "
+  
+  Split application were 20 lbs N in summer, 60 lbs N in spring/fall
+  Fall timings are 17Oct and 31Oct for 2nd and 3rd year
+  Spring timings are 4May, 22Apr and 12May for 1st 2nd and 3rd year
+  Summer timings are 1Jun 23May and 23Jun for 1st 2nd and 3rd year
+  Data collected in Staples MN from 2018 - 2020
+  "
+  ) -> plot1
+
+plot1 %>% 
+  ggsave(
+    "KernzaGrowerGuide_nrate.png",
+    .,
+    device = "png",
+    width = 8,
+    height = 4,
+    units = "in",
+    dpi = 500
+  )
