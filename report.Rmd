@@ -30,6 +30,9 @@ theme_set(theme_bw())
 
 Sites are all different with treatments. Staples makes most sense.
 
+I want one graph of Staples data showing the curve by stand age and the N rate associated with max yields an dhow they differ by stand age--forget V17 and R100 for that purpose. We talk about how we expect this curve ,but it wasn't observed in V17 and R100. 
+This is almost like a meta-analysis---there are a lot of things not kept consistent but the question could almost be, does N rate and timing matter so much that its effects are viewed even when lcoations and years and stand age are different?
+
 How does cumulative N impact yield?
 
 Does timing of N change this impact?
