@@ -3,8 +3,8 @@ title: n-rate timing analysis report
 author: jesse puka-beals
 date: "`r Sys.Date()`"
 output:
-  pdf_document:
-    toc: true
+  # pdf_document:
+    # toc: true
 editor_options: 
   chunk_output_type: console
 ---
@@ -293,51 +293,7 @@ dat_new %>%
 ```
 
 
-
-
-
-### with lodging considered
-
-\newpage
-
-```{r, include=T, fig.cap="Cumulative yield response to cumulative N application"}
-
-dat_new %>% 
-  mutate(lodging.num = as.numeric(lodging)) %>% 
-  mutate(lodging.num = replace_na(lodging.num,1)) %>% 
-  mutate(lodging_status = if_else(
-    lodging.num > 5, 
-    "yes",
-    "no / unknown"
-  )) %>% 
-  filter(lodging_status == "no / unknown") %>% 
-  dplyr::select(location,stand.age, id, fall,spring,summer,yield.kgperha,lodging) %>% 
-  mutate(cumn_priortoharvest = fall+spring+summer) %>% 
-  group_by(location,id) %>% 
-  # summarise(cumn_total = fall+spring+summer)
-  # summarise(cumn_total = cumsum(fall+spring+summer))
-  summarise(cumn_total=sum(fall+spring+fall),
-            cumyield_total = sum(yield.kgperha
-                                 # na.rm = T #V17 101 has missing yield in year2
-                                 ))  %>% 
-  # knitr::kable()
-  ggplot(aes(
-    cumn_total,
-    cumyield_total,
-    col=location
-  )) +
-  stat_summary(geom="line") +
-  labs(caption = "R100 shows no N response with and without lodging scores > 5 in dataset
-       this shows dataset where lodging greater than 5 was filtered out")
-```
-
-
-
-
 ## Cumulative yield
-
-\newpage
-
 ```{r, include=T, fig.cap="Cumulative yield response to cumulative N application"}
 
 dat_new %>% 
