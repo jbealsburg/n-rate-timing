@@ -4,6 +4,8 @@
 
 # Data was collected from two 0.5m2 quadrats and combined
 
+# N was broadcast on 14May2020.
+
 # N was broadcast on 11May2021 on dry soil and about 0.5" of rain fell 2 weeks
 # later, but then it was very dry. Likely a lot of N was volatilized
 
@@ -29,6 +31,17 @@ tibble(
   kgNha
 ) -> key1
 
+# adding in N timing
+c("2020","2021") %>% 
+  as.factor -> year
+
+c("14May2020","11May2021") -> timing
+
+tibble(
+  year,
+  timing
+) -> key2
+
 # importing ndsu data
 # adding in N rate
 read.csv("ndsu_data.csv",
@@ -41,6 +54,8 @@ read.csv("ndsu_data.csv",
     year,experiment,location,block,plot,treatment,
     threshed_grain_no_bag.g.
   ) %>% 
+  mutate(year=as.factor(year)) %>% 
+  left_join(key2) %>% 
   left_join(key1) %>% 
   dplyr::select(-c(lbsN,
                    treatment)) %>% 
@@ -48,12 +63,16 @@ read.csv("ndsu_data.csv",
     threshed_grain_gramsm2 = threshed_grain_no_bag.g.
   ) %>% 
   mutate(yield_kgha = threshed_grain_gramsm2*10) %>% 
-  dplyr::select(-threshed_grain_gramsm2) %>% 
-  mutate(year=as.factor(year))-> dat
+  dplyr::select(-threshed_grain_gramsm2) -> dat
 
 
 # EDA ---------------------------------------------------------------------
 
+dat %>% 
+  ggplot(aes(yield_kgha)) +
+  # stat_bin()
+  geom_boxplot()
+# not removing any outliers
 
 dat %>% 
   # glimpse()
@@ -75,7 +94,7 @@ dat %>%
 
 dat %>% 
   lm(yield_kgha~kgNha*year*block,.) %>% 
-  anova()
+  anova() 
 
 # We cannot reject the Ho that there were no differences in yield among N rates.
 
