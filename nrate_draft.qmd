@@ -1,0 +1,45 @@
+---
+title: "N-rate Timing"
+date: "`r Sys.Date()`"
+# format: pdf
+# format: revealjs
+# format:
+  # docx:
+    # reference-doc: word_style.docx
+editor: visual
+execute: 
+  echo: false
+  message: false
+  warning: false
+---
+
+### To do 
+
+Distill brainstorming done in the EDA scripts, report.Rmd and Dominics word doc into a singular first draft. 
+
+# Data
+
+Yield is in kg per ha
+
+```{r}
+library(dplyr)
+library(tidyverse)
+
+read.csv(
+  "data_nrate-all.csv"
+) %>% 
+  as_tibble() %>% 
+  rename(yield.cum = cumulative.grain.yield,
+         yield = yield.kgperha
+         ) %>% 
+  mutate(stand.age = ordered(stand.age)) %>% 
+  mutate(
+    across(
+      c(block,location, id),
+      factor
+    )
+  ) %>% 
+  glimpse()
+
+```
+
