@@ -1,7 +1,7 @@
 ---
 title: "N-rate Timing"
 date: "`r Sys.Date()`"
-# format: pdf
+format: pdf
 # format: revealjs
 # format:
   # docx:
@@ -26,6 +26,9 @@ library(dplyr)
 library(tidyverse)
 library(multcomp)
 library(emmeans)
+library(lme4)
+library(car)
+theme_set(theme_bw())
 
 read.csv(
   "data_nrate-all.csv"
@@ -364,79 +367,7 @@ dat %>%
   stat_bin()
 ```
 
-We only have 3 common timings between V17 and Staples, so we are only looking at those comparisons
-
-### linear model
-
-```{r}
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
-  filter(stand.age=="3") %>% 
-  filter(timing == "Control" |
-           timing == "Fall" |
-           timing == "Spring") %>% 
-  lm(yield.cum~cumn*timing*location,.) %>% 
-  anova()
-```
-
-No difference in total yield based on cumulative N, but difference from timing and location
-
-Updating model to remove the rate of n term (cumn), since it apparently didn't matter
-
-```{r}
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
-  filter(stand.age=="3") %>% 
-  filter(timing == "Control" |
-           timing == "Fall" |
-           timing == "Spring") %>% 
-  lm(yield.cum~timing*location,.) %>% 
-  # anova()
-  emmeans(~timing) %>% 
-  cld()
-```
-
-
-```{r}
-
-c(
-  "Control",
-  "Fall",
-  "Spring"
-) -> timing
-
-c(
-  "b","a","a"
-) -> tuk
-
-tibble(timing,tuk) -> tuk1
-
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
-  filter(stand.age=="3") %>%
-  filter(timing == "Control" |
-           timing == "Fall" |
-           timing == "Spring") %>% 
-  left_join(.,tuk1) %>% 
-  ggplot(aes(timing,yield.cum/3)) +
-  stat_summary(
-    geom = "bar",
-    col=1
-  ) +
-  geom_label(aes(label=tuk),
-             stat = "summary",
-             nudge_y = 20,
-             label.size=NA)
-
-rm(timing,tuk,tuk1)
-```
-
-
-BIG TAKEAWAY: Two locations over 3 years of nitrogen application at different rates and timings. We cannot reject Ho that the amount of N matters when modelled with a linear regression, whether 20 kg N ha or 140 kg N ha, when looked at over multiple years there was not a clear rate winner. We were able to reject the Ho that applying N results in more yield than the control, but the timing of spring vs. fall did not matter. 
-
 ### quadratic model
-
-Let's look at N rate even though it aparently didn't matter
 
 ```{r}
 dat %>% 
@@ -471,7 +402,7 @@ dat %>%
     yield.cum ~ poly(cumn,1),.
   ) %>% 
   AIC()
-
+# quadratic is better than linear for fitting the data
 ```
 
 Ok, so there is an effect of cumulative N when modelled quadratically versus linear
@@ -491,10 +422,42 @@ dat %>%
 
 Now that I'm modeling quadratically, we can reject the Ho there is no relationship between nitrogen rate and yield, but we cannot reject Ho that timing doesn't matter
 
-
+## mixed effect model
 
 ```{r}
-
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  filter(timing == "Control" |
+           timing == "Fall" |
+           timing == "Spring") %>% 
+  lmer(
+    yield.cum ~ poly(cumn,2)*location*timing+(1|block),.
+  ) %>% 
+  # summary()
+  # AIC()
+  car::Anova()
 ```
 
+The best model I can create (lowest AIC) finds a difference in cumulative yield by location, but not an effect of nrate, timing or an interaction. 
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  filter(timing == "Control" |
+           timing == "Fall" |
+           timing == "Spring") %>% 
+  ggplot(aes(cumn/3,yield.cum/3,
+             col=location)) +
+  geom_point() +
+  geom_smooth(
+    # aes(col=location),
+    se=F,
+    method="lm",
+    formula = y~y)
+```
+
+
+TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years. I would say our data suggests a quadratic or logarithmic relationship at around 60 kg N ha per year does not result in noticeably greater grain yields.  
 
