@@ -147,6 +147,44 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell">
 
 </div>
+<section id="analysis" class="level3">
+<h3 class="anchored" data-anchor-id="analysis">Analysis</h3>
+<p>When we fit logistic curves, it looked like the lodging was lowest in the control and fall plots. Let’s see if this is true.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: lodging
+                        Df  Sum Sq Mean Sq  F value Pr(&gt;F)    
+log(n.total + 1)         1 3109.08 3109.08 428.8900 &lt;2e-16 ***
+timing                   5   19.87    3.97   0.5481 0.7388    
+log(n.total + 1):timing  3   18.84    6.28   0.8664 0.4655    
+Residuals               45  326.21    7.25                    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>We cannot reject Ho that timing has an impact on lodging.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code> timing        emmean    SE df lower.CL upper.CL .group
+ control        0.333 1.559 49    -2.80     3.47  1    
+  fall          6.500 0.779 49     4.93     8.07   2   
+  fall split    8.083 0.779 49     6.52     9.65   2   
+  spring split  8.167 0.779 49     6.60     9.73   2   
+  spring        8.267 0.697 49     6.87     9.67   2   
+
+Confidence level used: 0.95 
+P value adjustment: tukey method for comparing a family of 5 estimates 
+significance level used: alpha = 0.05 
+NOTE: If two or more means share the same grouping symbol,
+      then we cannot show them to be different.
+      But we also did not show them to be the same. </code></pre>
+</div>
+</div>
+<p>Obviously, if we look just at timing then the control plots have less lodging than the rest of the plots receiving N. Takeaway here is that lodging is correlated with increases in N, but we cannot reject the Ho that timing does not have an impact. It looks like fall applied N had less impact on lodging, but we cannot reject Ho.</p>
+<p>Based on analysis, we are better off just fitting a general curve to lodging by nrate, we will need to do more analysis to find the best curve with the most fitting relationship.</p>
+</section>
 </section>
 
 </main>

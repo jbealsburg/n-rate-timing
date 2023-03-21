@@ -24,6 +24,8 @@ Distill brainstorming done in the EDA scripts, report.Rmd and Dominics word doc 
 ```{r setup}
 library(dplyr)
 library(tidyverse)
+library(multcomp)
+library(emmeans)
 
 read.csv(
   "data_nrate-all.csv"
@@ -181,3 +183,37 @@ dat %>%
     lodging~n.rate,.
   )
 ```
+
+### Analysis
+
+When we fit logistic curves, it looked like the lodging was lowest in the control and fall plots. Let's see if this is true. 
+
+```{r}
+dat %>% 
+  filter(location == "R100" & stand.age =="3") %>% 
+  lm(
+    formula = lodging~log(n.total+1)*timing+0,.
+  )  %>% 
+  anova()
+```
+
+We cannot reject Ho that timing has an impact on lodging.
+
+```{r}
+
+dat %>% 
+  filter(location == "R100" & stand.age =="3") %>% 
+  lm(
+    formula = lodging~timing,.
+  )  %>% 
+  # anova() %>% 
+  emmeans::emmeans(~timing) %>% 
+  cld()
+```
+
+Obviously, if we look just at timing then the control plots have less lodging than the rest of the plots receiving N. 
+Takeaway here is that lodging is correlated with increases in N, but we cannot reject the Ho that timing does not have an impact. It looks like fall applied N had less impact on lodging, but we cannot reject Ho. 
+
+Based on analysis, we are better off just fitting a general curve to lodging by nrate, we will need to do more analysis to find the best curve with the most fitting relationship. 
+
+
