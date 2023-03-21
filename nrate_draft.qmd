@@ -38,7 +38,11 @@ read.csv(
       factor
     )
   ) %>% 
-  mutate(timing = gsub("[0-9]","",treatment)) %>% 
+  mutate(timing = gsub("[0-9]","",treatment),
+         timing = str_to_title(timing),  
+          timing = str_trim(timing)) %>%
+  mutate(timing = fct_recode(timing,
+                             "Fall-Spring Split" = "Split")) %>% 
   mutate(n.total = fall+spring+summer) %>%
   # we assume no lodging unless noted
   mutate(lodging = replace_na(lodging,0)) %>% 
@@ -345,7 +349,152 @@ dat %>%
 We cannot reject Ho that plant height is the same across n rates
 
 
-
 # Yield
 
-then we need to get R100 year 3 data out of the yield dataset because it will drag it down for lodging
+## cumulative 
+
+Cumulative yield of kernza stands after 3 years of N fertilizer (V17 and Staples)
+
+```{r}
+dat %>% 
+  # Removing R100 plots in third year because lodging was so high
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  ggplot(aes(yield.cum)) +
+  stat_bin()
+```
+
+We only have 3 common timings between V17 and Staples, so we are only looking at those comparisons
+
+### linear model
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  filter(timing == "Control" |
+           timing == "Fall" |
+           timing == "Spring") %>% 
+  lm(yield.cum~cumn*timing*location,.) %>% 
+  anova()
+```
+
+No difference in total yield based on cumulative N, but difference from timing and location
+
+Updating model to remove the rate of n term (cumn), since it apparently didn't matter
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  filter(timing == "Control" |
+           timing == "Fall" |
+           timing == "Spring") %>% 
+  lm(yield.cum~timing*location,.) %>% 
+  # anova()
+  emmeans(~timing) %>% 
+  cld()
+```
+
+
+```{r}
+
+c(
+  "Control",
+  "Fall",
+  "Spring"
+) -> timing
+
+c(
+  "b","a","a"
+) -> tuk
+
+tibble(timing,tuk) -> tuk1
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>%
+  filter(timing == "Control" |
+           timing == "Fall" |
+           timing == "Spring") %>% 
+  left_join(.,tuk1) %>% 
+  ggplot(aes(timing,yield.cum/3)) +
+  stat_summary(
+    geom = "bar",
+    col=1
+  ) +
+  geom_label(aes(label=tuk),
+             stat = "summary",
+             nudge_y = 20,
+             label.size=NA)
+
+rm(timing,tuk,tuk1)
+```
+
+
+BIG TAKEAWAY: Two locations over 3 years of nitrogen application at different rates and timings. We cannot reject Ho that the amount of N matters when modelled with a linear regression, whether 20 kg N ha or 140 kg N ha, when looked at over multiple years there was not a clear rate winner. We were able to reject the Ho that applying N results in more yield than the control, but the timing of spring vs. fall did not matter. 
+
+### quadratic model
+
+Let's look at N rate even though it aparently didn't matter
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  ggplot(aes(cumn,yield.cum)) +
+  geom_point() +
+  geom_smooth(
+    se=F,
+    method = "lm",
+    formula = y~y
+  ) +
+  geom_smooth(
+    se=F,
+    method = "lm",
+    formula = y~poly(x,2),
+    linetype=3
+  ) 
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  lm(
+    yield.cum ~ poly(cumn,2),.
+  ) %>% 
+  AIC()
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  lm(
+    yield.cum ~ poly(cumn,1),.
+  ) %>% 
+  AIC()
+
+```
+
+Ok, so there is an effect of cumulative N when modelled quadratically versus linear
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  filter(timing == "Control" |
+           timing == "Fall" |
+           timing == "Spring") %>% 
+  lm(
+    yield.cum ~ poly(cumn,2)*location*timing,.
+  ) %>% 
+  anova()
+```
+
+Now that I'm modeling quadratically, we can reject the Ho there is no relationship between nitrogen rate and yield, but we cannot reject Ho that timing doesn't matter
+
+
+
+```{r}
+
+```
+
+

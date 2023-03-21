@@ -170,12 +170,12 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p>We cannot reject Ho that timing has an impact on lodging.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code> timing        emmean    SE df lower.CL upper.CL .group
- control        0.333 1.559 49    -2.80     3.47  1    
-  fall          6.500 0.779 49     4.93     8.07   2   
-  fall split    8.083 0.779 49     6.52     9.65   2   
-  spring split  8.167 0.779 49     6.60     9.73   2   
-  spring        8.267 0.697 49     6.87     9.67   2   
+<pre><code> timing       emmean    SE df lower.CL upper.CL .group
+ Control       0.333 1.559 49    -2.80     3.47  1    
+ Fall          6.500 0.779 49     4.93     8.07   2   
+ Fall Split    8.083 0.779 49     6.52     9.65   2   
+ Spring Split  8.167 0.779 49     6.60     9.73   2   
+ Spring        8.267 0.697 49     6.87     9.67   2   
 
 Confidence level used: 0.95 
 P value adjustment: tukey method for comparing a family of 5 estimates 
@@ -279,7 +279,98 @@ Residuals 30 0.181829 0.006061               </code></pre>
 </section>
 <section id="yield" class="level1">
 <h1>Yield</h1>
-<p>then we need to get R100 year 3 data out of the yield dataset because it will drag it down for lodging</p>
+<section id="cumulative" class="level2">
+<h2 class="anchored" data-anchor-id="cumulative">cumulative</h2>
+<p>Cumulative yield of kernza stands after 3 years of N fertilizer (V17 and Staples)</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We only have 3 common timings between V17 and Staples, so we are only looking at those comparisons</p>
+<section id="linear-model" class="level3">
+<h3 class="anchored" data-anchor-id="linear-model">linear model</h3>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: yield.cum
+                     Df  Sum Sq Mean Sq F value    Pr(&gt;F)    
+cumn                  1  272276  272276  3.2096 0.0833017 .  
+timing                2 1603189  801595  9.4492 0.0006568 ***
+location              1 2559346 2559346 30.1695 5.797e-06 ***
+cumn:timing           2   63325   31662  0.3732 0.6916546    
+cumn:location         1   81481   81481  0.9605 0.3349005    
+timing:location       2   12857    6429  0.0758 0.9271962    
+cumn:timing:location  1   53887   53887  0.6352 0.4317110    
+Residuals            30 2544967   84832                      
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>No difference in total yield based on cumulative N, but difference from timing and location</p>
+<p>Updating model to remove the rate of n term (cumn), since it apparently didn’t matter</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code> timing  emmean    SE df lower.CL upper.CL .group
+ Control   1109 112.0 35      881     1336  1    
+ Spring    1778  77.2 35     1621     1935   2   
+ Fall      1856  79.2 35     1695     2017   2   
+
+Results are averaged over the levels of: location 
+Confidence level used: 0.95 
+P value adjustment: tukey method for comparing a family of 3 estimates 
+significance level used: alpha = 0.05 
+NOTE: If two or more means share the same grouping symbol,
+      then we cannot show them to be different.
+      But we also did not show them to be the same. </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>BIG TAKEAWAY: Two locations over 3 years of nitrogen application at different rates and timings. We cannot reject Ho that the amount of N matters when modelled with a linear regression, whether 20 kg N ha or 140 kg N ha, when looked at over multiple years there was not a clear rate winner. We were able to reject the Ho that applying N results in more yield than the control, but the timing of spring vs.&nbsp;fall did not matter.</p>
+</section>
+<section id="quadratic-model" class="level3">
+<h3 class="anchored" data-anchor-id="quadratic-model">quadratic model</h3>
+<p>Let’s look at N rate even though it aparently didn’t matter</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-24-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1000.713</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1020.782</code></pre>
+</div>
+</div>
+<p>Ok, so there is an effect of cumulative N when modelled quadratically versus linear</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: yield.cum
+                       Df  Sum Sq Mean Sq F value    Pr(&gt;F)    
+poly(cumn, 2)           2 2011131 1005565 12.0239 0.0001701 ***
+location                1 2181936 2181936 26.0901 2.065e-05 ***
+timing                  2  284394  142197  1.7003 0.2009473    
+poly(cumn, 2):location  2  114253   57126  0.6831 0.5132778    
+poly(cumn, 2):timing    3  186149   62050  0.7419 0.5360498    
+location:timing         2   71804   35902  0.4293 0.6551831    
+Residuals              28 2341662   83631                      
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>Now that I’m modeling quadratically, we can reject the Ho there is no relationship between nitrogen rate and yield, but we cannot reject Ho that timing doesn’t matter</p>
+<div class="cell">
+
+</div>
+</section>
+</section>
 </section>
 
 </main>
