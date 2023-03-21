@@ -63,7 +63,36 @@ read.csv("ndsu_data.csv",
     threshed_grain_gramsm2 = threshed_grain_no_bag.g.
   ) %>% 
   mutate(yield_kgha = threshed_grain_gramsm2*10) %>% 
-  dplyr::select(-threshed_grain_gramsm2) -> dat
+  dplyr::select(-threshed_grain_gramsm2) %>% 
+  # averaging across samples in 2021
+  group_by(year,location,block,plot,kgNha) %>% 
+  summarise(yield = mean(yield_kgha)) -> dat
+
+
+# export for nrate format --------------------------------------------------------
+
+dat %>% 
+  # distinct(year)
+  # dplyr::select(-c(experiment,timing)) %>% 
+  rename(
+    id=plot,
+    spring = kgNha
+  ) %>% 
+  mutate(
+    summer = 0,
+    fall = 0
+  ) %>% 
+  mutate(stand.age = if_else(year == "2020",
+                             "1",
+                             "2")) %>% 
+  mutate(cumn = spring) %>% 
+  dplyr::select(year,location,id,block,stand.age,
+                fall,spring,summer,yield,
+                cumn) 
+# %>% 
+  # write.csv("dummy.csv",
+            # row.names = F)
+# I used this dummy.csv to add in data to the data_nrate-all.csv
 
 
 # EDA ---------------------------------------------------------------------

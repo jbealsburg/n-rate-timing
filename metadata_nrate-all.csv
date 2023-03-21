@@ -1,0 +1,18 @@
+parameter,description
+year,year of data collection
+location,experimental site. R100 and V17 are fields located at the experiment station in rosemount MN. Staples is Staples MN. NDSU is in Williston ND.
+id,plot number
+block,block id within the randomized complete block design
+stand.age,"age of the kernza stand. If planted in fall of 2018, 2019 is stand.age=1, 2020 is stand.age = 2"
+fall,N applied in kg N per hectare with urea in fall
+spring,N applied in kg N per hectare with urea in spring
+summer,N applied in kg N per hectare with urea in summer
+yield,kernza threshed grain yield in kilograms per hectare
+lodging,lodging at harvest where 1 is upright plant and 9 is sideways plant
+height_1,"meters, height of plant at harvest"
+height_2,"meters, height of plant at harvest"
+height_3,"meters, height of plant at harvest"
+height_4,"meters, height of plant at harvest"
+height_5,"meters, height of plant at harvest"
+cumn,"total N applied in kg N per hectare with urea prior to harvest. In year 1, cumn will just be the N applied in year 1, in year 2, cumn will be N applied in year 1 and year 2.  Note that R100 does not have data since experiment was not initiated until the second production year."
+yield.cum,"total threshed grain yield in kilograms per hectare from that plot, calculated identically as cumn. Note that R100 does not have data since experiment was not initiated until the second production year."
