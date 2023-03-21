@@ -257,12 +257,24 @@ height  -0.4993655  1.0000000</code></pre>
 </section>
 <section id="beyond-r100" class="level2">
 <h2 class="anchored" data-anchor-id="beyond-r100">Beyond R100</h2>
-<p>How was plant height distributed?</p>
+<p>We only have height data for V17 in stand ages 2 and 3 besides the R100 in stand age 3.</p>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="nrate_draft_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+<p>alright, we only have two sites with plant height data</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: height
+          Df   Sum Sq  Mean Sq F value Pr(&gt;F)
+n.total    1 0.000056 0.000056  0.0092  0.924
+Residuals 30 0.181829 0.006061               </code></pre>
+</div>
+</div>
+<p>We cannot reject Ho that plant height is the same across n rates</p>
 </section>
 </section>
 <section id="yield" class="level1">

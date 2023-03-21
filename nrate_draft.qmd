@@ -322,15 +322,27 @@ We observe a pearson correlation coefficient of -0.5 between height and lodging.
 
 ## Beyond R100
 
-How was plant height distributed?
+We only have height data for V17 in stand ages 2 and 3 besides the R100 in stand age 3. 
+
 
 ```{r}
 dat %>% 
   ggplot(aes(height)) +
-  stat_bin()
+  stat_bin() +
+  facet_wrap(~location)
 ```
 
+alright, we only have two sites with plant height data
 
+```{r}
+dat %>% 
+  filter(location != "R100") %>% 
+  # View()
+  lm(height~n.total,.) %>% 
+  anova()
+```
+
+We cannot reject Ho that plant height is the same across n rates
 
 
 
