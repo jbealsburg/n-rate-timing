@@ -83,12 +83,15 @@ ul.task-list li input[type="checkbox"] {
 <section id="lodging" class="level1">
 <h1>Lodging</h1>
 <p>Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging.</p>
+<p>In general, if lodging is above 6, the yield data is questionable.</p>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="nrate_draft_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate. ## R100</p>
+<p>Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate.</p>
+<section id="r100" class="level2">
+<h2 class="anchored" data-anchor-id="r100">R100</h2>
 <p>R100 only had N applied in the second and third year.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -185,6 +188,86 @@ NOTE: If two or more means share the same grouping symbol,
 <p>Obviously, if we look just at timing then the control plots have less lodging than the rest of the plots receiving N. Takeaway here is that lodging is correlated with increases in N, but we cannot reject the Ho that timing does not have an impact. It looks like fall applied N had less impact on lodging, but we cannot reject Ho.</p>
 <p>Based on analysis, we are better off just fitting a general curve to lodging by nrate, we will need to do more analysis to find the best curve with the most fitting relationship.</p>
 </section>
+</section>
+<section id="v17" class="level2">
+<h2 class="anchored" data-anchor-id="v17">V17</h2>
+<p>Lodging is below threshold of 6, meaning we think this yield data is still good.</p>
+<p>We are just looking to see if similar trends to R100 where applying more N leads to more lodging and where applying N closer to harvest correlates with more lodging</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Lodging only occurred in the stands second year of production. This could’ve just been a harvest timing issue, but harvest was 3Aug so unlikely.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Not a strong relationship between N rate and lodging. There is a good amount of lodging in control. Nothing to see here.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="plant-height" class="level1">
+<h1>Plant height</h1>
+<p>Plant height is also not a measurement of primary interest.</p>
+<p>We are curious to what extent plant height relates to lodging in R100</p>
+<p>We are curious more broadly how plant height was distributed across experiments.</p>
+<section id="r100---third-year-with-lodging-only" class="level2">
+<h2 class="anchored" data-anchor-id="r100---third-year-with-lodging-only">R100 - third year with lodging only</h2>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We observe an overall trend of decreasing plant height as N rate increases.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Variance Table
+
+Response: height
+          Df   Sum Sq  Mean Sq F value   Pr(&gt;F)   
+n.total    1 0.049647 0.049647 10.7931 0.001908 **
+timing     4 0.037013 0.009253  2.0116 0.107787   
+Residuals 48 0.220797 0.004600                    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>Cannot reject Ho that timing has no effect on the effect of n rate on plant height</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We have learned from R100 in it’s third stand age that as nrate increases, there is an increase in lodging and a decrease in plant height.</p>
+<p>Let’s see if they’re correlated</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>           lodging     height
+lodging  1.0000000 -0.4993655
+height  -0.4993655  1.0000000</code></pre>
+</div>
+</div>
+<p>We observe a pearson correlation coefficient of -0.5 between height and lodging. This is considered between a moderate and strong correlation.</p>
+</section>
+<section id="beyond-r100" class="level2">
+<h2 class="anchored" data-anchor-id="beyond-r100">Beyond R100</h2>
+<p>How was plant height distributed?</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="yield" class="level1">
+<h1>Yield</h1>
+<p>then we need to get R100 year 3 data out of the yield dataset because it will drag it down for lodging</p>
 </section>
 
 </main>

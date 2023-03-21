@@ -39,7 +39,13 @@ read.csv(
     )
   ) %>% 
   mutate(timing = gsub("[0-9]","",treatment)) %>% 
-  mutate(n.total = fall+spring+summer) -> dat
+  mutate(n.total = fall+spring+summer) %>%
+  # we assume no lodging unless noted
+  mutate(lodging = replace_na(lodging,0)) %>% 
+  # averaging across height data for now to make things easier
+  mutate(height = (height_1+height_2+height_3+height_4+height_5)/5,
+         .after=height_5) %>% 
+  dplyr::select(-c(height_1,height_2,height_3,height_4,height_5)) -> dat
 
 ```
 
@@ -73,6 +79,8 @@ read.csv(
 
 Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging.
 
+In general, if lodging is above 6, the yield data is questionable. 
+
 ```{r}
 dat %>% 
   ggplot(aes(lodging)) +
@@ -80,7 +88,9 @@ dat %>%
   facet_wrap(~location)
 ```
 
-Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate. \## R100
+Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate. 
+
+## R100
 
 R100 only had N applied in the second and third year.
 
@@ -174,11 +184,11 @@ dat %>%
     values_to = "n.rate",
     names_to = "n.timing"
   ) %>% 
-  filter(
-    n.timing=="fall"
-    # n.timing == "spring"
-    # n.timing == "summer"
-  ) %>% 
+  # filter(
+  #   n.timing=="fall"
+  #   # n.timing == "spring"
+  #   # n.timing == "summer"
+  # ) %>% 
   lm(
     lodging~n.rate,.
   )
@@ -217,3 +227,113 @@ Takeaway here is that lodging is correlated with increases in N, but we cannot r
 Based on analysis, we are better off just fitting a general curve to lodging by nrate, we will need to do more analysis to find the best curve with the most fitting relationship. 
 
 
+## V17
+
+Lodging is below threshold of 6, meaning we think this yield data is still good. 
+
+We are just looking to see if similar trends to R100 where applying more N leads to more lodging and where applying N closer to harvest correlates with more lodging
+
+```{r}
+dat %>% 
+  filter(location == "V17") %>% 
+  ggplot(aes(stand.age,lodging)) +
+  geom_boxplot()
+```
+
+Lodging only occurred in the stands second year of production. This could've just been a harvest timing issue, but harvest was 3Aug so unlikely. 
+
+```{r}
+dat %>% 
+  filter(location == "V17" & stand.age == "2") %>% 
+  ggplot(aes(fall+spring+summer,lodging)) +
+  geom_point() +
+  stat_smooth(
+    method = "lm",
+    se=F
+  )
+```
+
+Not a strong relationship between N rate and lodging. There is a good amount of lodging in control. Nothing to see here. 
+
+```{r}
+dat %>% 
+  filter(location == "V17" & stand.age == "2") %>% 
+  ggplot(aes(fall+spring+summer,lodging, col = timing)) +
+  geom_point()
+```
+
+# Plant height
+
+Plant height is also not a measurement of primary interest. 
+
+We are curious to what extent plant height relates to lodging in R100
+
+We are curious more broadly how plant height was distributed across experiments. 
+
+## R100 - third year with lodging only
+
+```{r}
+dat %>% 
+  filter(location == "R100" & stand.age =="3") %>% 
+  ggplot(aes(fall+spring+summer,height)) +
+  geom_point() +
+  geom_smooth(
+    se=F,
+    method = "lm",
+    formula = y~poly(x,2)
+  )
+```
+
+We observe an overall trend of decreasing plant height as N rate increases. 
+
+```{r}
+dat %>% 
+  filter(location == "R100" & stand.age =="3") %>% 
+  lm(
+    height~n.total+timing,.
+  ) %>% 
+  anova()
+
+```
+
+Cannot reject Ho that timing has no effect on the effect of n rate on plant height
+
+```{r}
+dat %>% 
+  filter(location == "R100" & stand.age =="3") %>% 
+  ggplot(aes(fall+spring+summer,height, col = timing)) +
+  geom_point()
+
+```
+
+We have learned from R100 in it's third stand age that as nrate increases, there is an increase in lodging and a decrease in plant height. 
+
+Let's see if they're correlated
+
+```{r}
+
+dat %>% 
+  filter(location == "R100" & stand.age =="3") %>%
+  dplyr::select(lodging,height) %>% 
+  cor(method = "pearson") 
+```
+
+We observe a pearson correlation coefficient of -0.5 between height and lodging. This is considered between a moderate and strong correlation. 
+
+## Beyond R100
+
+How was plant height distributed?
+
+```{r}
+dat %>% 
+  ggplot(aes(height)) +
+  stat_bin()
+```
+
+
+
+
+
+# Yield
+
+then we need to get R100 year 3 data out of the yield dataset because it will drag it down for lodging
