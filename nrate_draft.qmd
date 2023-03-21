@@ -11,6 +11,8 @@ execute:
   echo: false
   message: false
   warning: false
+editor_options: 
+  chunk_output_type: console
 ---
 
 ### To do 
@@ -19,9 +21,7 @@ Distill brainstorming done in the EDA scripts, report.Rmd and Dominics word doc 
 
 # Data
 
-Yield is in kg per ha
-
-```{r}
+```{r setup}
 library(dplyr)
 library(tidyverse)
 
@@ -29,9 +29,6 @@ read.csv(
   "data_nrate-all.csv"
 ) %>% 
   as_tibble() %>% 
-  rename(yield.cum = cumulative.grain.yield,
-         yield = yield.kgperha
-         ) %>% 
   mutate(stand.age = ordered(stand.age)) %>% 
   mutate(
     across(
@@ -39,7 +36,190 @@ read.csv(
       factor
     )
   ) %>% 
-  glimpse()
+  mutate(n.total = fall+spring+summer) -> dat
 
 ```
+
+
+```{r print datasets, include=F}
+dat %>% 
+  slice(1:6) %>% 
+  knitr::kable(
+    caption = "first 5 lines of dataset"
+  )
+
+read.csv(
+  "metadata_nrate-all.csv"
+) %>% 
+  knitr::kable(
+    capation= "metadata"
+  )
+```
+
+
+# Methods
+
+```{r, include=F}
+read.csv(
+  "field_activities.csv"
+) %>% 
+  knitr::kable(
+    caption = "Dates of key field activities"
+  )
+```
+
+# Lodging
+
+Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging. 
+
+```{r}
+dat %>% 
+  ggplot(aes(lodging)) +
+  stat_bin() + 
+  facet_wrap(~location)
+```
+
+Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate. 
+
+## R100
+
+R100 only had N applied in the second and third year. 
+
+```{r}
+dat %>% 
+  filter(location == "R100") %>% 
+  ggplot(aes(stand.age,lodging)) +
+  geom_boxplot()
+```
+
+Lodging only occurred in the stands third year of production.
+
+```{r}
+dat %>% 
+  filter(location == "R100") %>% 
+  ggplot(aes(fall+spring+summer,lodging)) +
+  geom_point() +
+  geom_smooth(
+    method = "lm",
+    formula = y~log(x+10),
+    se=F
+  )
+```
+
+```{r}
+dat %>% 
+  filter(location == "R100" &
+           stand.age == "3") %>% 
+  ggplot(aes(x=n.total)) +
+  geom_point(aes(fall,lodging),
+             col=1,
+             shape=1) +
+  geom_smooth(
+    aes(fall,lodging),
+    method = "lm",
+    se=F,
+    col=1
+  ) +
+  geom_point(aes(spring,lodging),
+             col=2,
+             shape=2) +
+  geom_smooth(
+    aes(spring,lodging),
+    method = "lm",
+    se=F,
+    col=2
+  ) +
+  geom_point(aes(summer,lodging),
+             col=3,
+             shape=3) +
+  geom_smooth(
+    aes(summer,lodging),
+    method = "lm",
+    se=F,
+    col="3"
+  ) 
+```
+
+```{r}
+dat %>% 
+  filter(location == "R100" &
+           stand.age == "3") %>% 
+  ggplot(aes(x=n.total)) +
+  stat_summary(aes(fall,lodging),
+             col=1,
+             shape=1) +
+  geom_smooth(
+    aes(fall,lodging),
+    method = "lm",
+    se=F,
+    col=1
+  ) +
+  stat_summary(aes(spring,lodging),
+             col=2,
+             shape=2) +
+  geom_smooth(
+    aes(spring,lodging),
+    method = "lm",
+    se=F,
+    col=2
+  ) +
+  stat_summary(aes(summer,lodging),
+             col=3,
+             shape=3) +
+  geom_smooth(
+    aes(summer,lodging),
+    method = "lm",
+    # formula = y~poly(x,2),
+    se=F,
+    col="3"
+  ) 
+```
+
+Can I recreate above graph while using pivot longer?
+
+```{r}
+dat %>% 
+  filter(location == "R100" &
+           stand.age == "3") %>% 
+  pivot_longer(
+    cols = c(fall,spring,summer),
+    values_to = "n.rate",
+    names_to = "n.timing"
+  ) %>% 
+  # glimpse() #lodging is now repeated 3 times
+  ggplot(aes(x=n.rate,lodging,
+             group = n.timing,
+             col = n.timing)) +
+  stat_summary() +
+  stat_smooth(
+    se=F,
+    method = "lm"
+  )
+```
+
+
+```{r}
+dat %>% 
+  filter(location == "R100" &
+           stand.age == "3") %>% 
+  pivot_longer(
+    cols = c(fall,spring,summer),
+    values_to = "n.rate",
+    names_to = "n.timing"
+  ) %>% 
+  filter(
+    # n.timing=="fall"
+    # n.timing == "spring"
+    n.timing == "summer"
+  ) %>% 
+  lm(
+    lodging~n.rate,.
+  )
+```
+ 
+
+
+
+
+
 

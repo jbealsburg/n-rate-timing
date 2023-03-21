@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2023-03-20">
+<meta name="dcterms.date" content="2023-03-21">
 
 <title>N-rate Timing</title>
 <style>
@@ -57,7 +57,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 20, 2023</p>
+      <p class="date">March 21, 2023</p>
     </div>
   </div>
   
@@ -73,31 +73,64 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="data" class="level1">
 <h1>Data</h1>
-<p>Yield is in kg per ha</p>
+<div class="cell">
+
+</div>
+</section>
+<section id="methods" class="level1">
+<h1>Methods</h1>
+</section>
+<section id="lodging" class="level1">
+<h1>Lodging</h1>
+<p>Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate.</p>
+<section id="r100" class="level2">
+<h2 class="anchored" data-anchor-id="r100">R100</h2>
+<p>R100 only had N applied in the second and third year.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Lodging only occurred in the stands third year of production.</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Can I recreate above graph while using pivot longer?</p>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>Rows: 318
-Columns: 18
-$ year      &lt;int&gt; 2019, 2019, 2019, 2019, 2019, 2019, 2019, 2019, 2019, 2019, …
-$ location  &lt;fct&gt; RSMT V17, RSMT V17, RSMT V17, RSMT V17, RSMT V17, RSMT V17, …
-$ id        &lt;fct&gt; 101, 102, 103, 104, 201, 202, 203, 204, 301, 302, 303, 304, …
-$ block     &lt;fct&gt; 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 1, 1, 1, 1, …
-$ stand.age &lt;ord&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, …
-$ treatment &lt;chr&gt; "control", "80 Fall", "80 Spring", "80 Split", "80 Spring", …
-$ fall      &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 80, 0, 40…
-$ spring    &lt;int&gt; 0, 0, 80, 40, 80, 40, 0, 0, 0, 0, 80, 40, 0, 0, 80, 40, 0, 0…
-$ summer    &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …
-$ yield     &lt;dbl&gt; 786.7, 802.8, 835.1, 447.8, 508.3, 875.5, 722.2, 641.5, 439.…
-$ lodging   &lt;int&gt; 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 2, 2, 2, 3, …
-$ height_1  &lt;int&gt; 164, 166, 160, 169, 179, 168, 166, 172, 165, 164, 163, 152, …
-$ height_2  &lt;int&gt; 179, 167, 165, 163, 174, 167, 180, 151, 160, 162, 174, 162, …
-$ height_3  &lt;int&gt; 167, 172, 159, 143, 161, 148, 179, 163, 151, 179, 152, 185, …
-$ height_4  &lt;int&gt; 157, 142, 148, 172, 175, 163, 174, 168, 168, 161, 163, 160, …
-$ height_5  &lt;int&gt; 170, 160, 159, 152, 176, 156, 179, 167, 169, 154, 180, 164, …
-$ cumn      &lt;int&gt; 0, 0, 80, 40, 80, 40, 0, 0, 0, 0, 80, 40, 0, 0, 80, 40, 0, 8…
-$ yield.cum &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, …</code></pre>
+<pre><code>
+Call:
+lm(formula = lodging ~ n.rate, data = .)
+
+Coefficients:
+(Intercept)       n.rate  
+    5.51620      0.04139  </code></pre>
 </div>
 </div>
+</section>
 </section>
 
 </main>
