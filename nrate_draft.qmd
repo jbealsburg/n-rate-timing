@@ -15,9 +15,9 @@ editor_options:
   chunk_output_type: console
 ---
 
-### To do 
+### To do
 
-Distill brainstorming done in the EDA scripts, report.Rmd and Dominics word doc into a singular first draft. 
+Distill brainstorming done in the EDA scripts, report.Rmd and Dominics word doc into a singular first draft.
 
 # Data
 
@@ -36,10 +36,10 @@ read.csv(
       factor
     )
   ) %>% 
+  mutate(timing = gsub("[0-9]","",treatment)) %>% 
   mutate(n.total = fall+spring+summer) -> dat
 
 ```
-
 
 ```{r print datasets, include=F}
 dat %>% 
@@ -56,7 +56,6 @@ read.csv(
   )
 ```
 
-
 # Methods
 
 ```{r, include=F}
@@ -70,7 +69,7 @@ read.csv(
 
 # Lodging
 
-Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging. 
+Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging.
 
 ```{r}
 dat %>% 
@@ -79,11 +78,9 @@ dat %>%
   facet_wrap(~location)
 ```
 
-Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate. 
+Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate. \## R100
 
-## R100
-
-R100 only had N applied in the second and third year. 
+R100 only had N applied in the second and third year.
 
 ```{r}
 dat %>% 
@@ -106,21 +103,20 @@ dat %>%
   )
 ```
 
-We observe a general increase in lodging as nitrogen rate increases. We fit a logistic curve since lodging cannot be greater than 10 and we expect as we increase N rate more lodging will get closer to 10. This curve is obviously not perfect.  
-
+We observe a general increase in lodging as nitrogen rate increases. We fit a logistic curve since lodging cannot be greater than 10 and we expect as we increase N rate more lodging will get closer to 10. This curve is obviously not perfect.
 
 ```{r}
 dat %>% 
   filter(location == "R100" & stand.age =="3") %>% 
-  mutate(timing = gsub("[0-9]","",treatment)) %>% 
   ggplot(aes(fall+spring+summer,lodging, col = timing)) +
   geom_point()
 ```
 
+Looking at treatment timing with N rate, I see a bit more red dots (fall) with lower lodging, but it's messy. Sprint split has some of the most lodging, but also an outlier at near 150 kg N ha where there was no lodging
+
 ```{r}
 dat %>% 
   filter(location == "R100" & stand.age =="3") %>% 
-  mutate(timing = gsub("[0-9]","",treatment)) %>% 
   ggplot(aes(fall+spring+summer,lodging, col = timing)) +
   stat_summary() +
   stat_smooth(
@@ -133,8 +129,7 @@ dat %>%
   )
 ```
 
-
-
+Here we are fitting a logistic regression with a y intercept of zero because we assume at 0N there is no lodging (as shown with control plots) and that lodging score will increase as nitrogen rate increases but that lodging will never exceed 10. The takeaway from this figure is that there is no lodging at 0N and that you see less lodging when you apply in fall and more when you apply in spring and summer.
 
 ```{r}
 dat %>% 
@@ -156,8 +151,19 @@ dat %>%
   )
 ```
 
+This is a funkier way to look at this data based on how I organized the data and it is confusing so may not be worth trying to interpret.. Every lodging observation has a corresponding amount of N applied in fall, spring and summer. All of the spring plots, for example, also are plots where no N was applied in the fall. So within each of the timings (fall, spring or summer), the entire lodging dataset is represented. This also means the lodging dataset is duplicated 3 times when we do this. I am not sure if this is ok, but this is how I think this can be interpreted.
 
-```{r}
+With more N there is more lodging, but we also see more lodging when the N is applied closer to harvest.
+
+| Timing of N | m (lodging \~ m\*nrate + b) |
+|-------------|-----------------------------|
+| fall        | -0.002                      |
+| spring      | 0.025                       |
+| summer      | 0.041                       |
+
+: Linear regression parameters for lodging response to nitrogen timing
+
+```{r, eval=F}
 dat %>% 
   filter(location == "R100" &
            stand.age == "3") %>% 
@@ -167,18 +173,11 @@ dat %>%
     names_to = "n.timing"
   ) %>% 
   filter(
-    # n.timing=="fall"
+    n.timing=="fall"
     # n.timing == "spring"
-    n.timing == "summer"
+    # n.timing == "summer"
   ) %>% 
   lm(
     lodging~n.rate,.
   )
 ```
- 
-
-
-
-
-
-
