@@ -26,7 +26,7 @@ editor_options:
 
 - Combined across all site-years, yields were higher when N was applied in the fall versus in the spring or when split with a summer application. 
 
-- Of sites where we tracked yield over three years, we failed to reject the Ho that N rate and timing had no impact on the yield of the stand. 
+- Of sites where we tracked yield over three years, we failed to reject the Ho that yields differed among stands that recieved different N rates and timings. 
 
 - The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More research is required to capture the variability of yield response to N rate and timing. 
 
@@ -100,7 +100,7 @@ dat %>%
   group_by(location,year) %>% 
   tally() %>% 
   knitr::kable(
-    caption = "Ee have 10 site-years, more than enough to be a random effect"
+    caption = "We have 10 site-years, more than enough to be a random effect"
   )
 ```
 
@@ -144,7 +144,8 @@ dat %>%
     se=F
   ) +
   labs(
-    x="N rate prior to harvest"
+    x="N rate (kg N ha)",
+    y="Lodging score (0=no lodging)"
   )
 ```
 
@@ -170,7 +171,9 @@ dat %>%
     formula = y~log(x+1)+0
   ) +
   labs(
-    caption = "fall split line is hidden underneath spring split"
+    caption = "fall split line is hidden underneath spring split",
+    x="N rate (kg N ha)",
+    y="loding score (0=no lodging)"
   )
 ```
 
@@ -354,7 +357,7 @@ dat %>%
     method="lm",
     formula = y~y) +
   labs(
-    x="N applied (kg N ha)",
+    x="N rate (kg N ha)",
     y="Yield (kg ha)"
   )
 ```
@@ -420,6 +423,10 @@ dat %>%
     method = "lm",
     se=F,
     formula = y~poly(x,2)
+  ) +
+  labs(
+    x="N rate (kg N ha)",
+    y="Yield (kg ha)"
   )
 ```
 
@@ -568,6 +575,10 @@ TAKEAWAY: across 8 site-years, second year yields were higher when N was applied
 
 #### slice by site
 
-Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and makes a lot of sense. 
+Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and I did in the exploratory data analysis.
+
+The main takeaway is we see a great response from staples but not much beyond that. 
+
+
 
 
