@@ -45,7 +45,9 @@ read.csv(
          timing = str_to_title(timing),  
           timing = str_trim(timing)) %>%
   mutate(timing = fct_recode(timing,
-                             "Fall-Spring Split" = "Split")) %>% 
+                             "Fall-Spring Split" = "Split",
+                             "Fall-Summer Split" = "Fall Split",
+                             "Spring-Summer Split" = "Spring Split")) %>% 
   mutate(n.total = fall+spring+summer) %>%
   # we assume no lodging unless noted
   mutate(lodging = replace_na(lodging,0)) %>% 
@@ -541,7 +543,7 @@ dat %>%
 
 Quadratic is better!
 
-### full model
+### full model, site-years as random
 
 ```{r}
 dat %>% 
@@ -552,49 +554,121 @@ dat %>%
 # We still have 9 site-years, let's model these as random and see if we see an effect of nrate
 
 dat %>% 
+# removing yield data from lodged plots
   filter(location != "R100" | stand.age != "3") %>%
-# removing instances where there was a Fall timing but no N was actually applied
+# removing instances where there was a Fall timing but no N was applied
   filter(timing !="Fall" | fall != 0) %>% 
   lmer(
     yield~poly(n.total,2)*timing*stand.age + (1|location/year/block),.
   ) %>% 
   # summary()
   car::Anova()
-  emmip(.,
-        timing~stand.age)
 
-# We observe nonEst for certain emmeans because there is no data for certain factor combinations. 
-  
-# we know from this model that there is not an interaction, so we just simply rerun the model without the interaction term
-
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>%
-  lmer(
-    yield~poly(n.total,2) + timing + (1|location/year/block),.
-  ) %>% 
-  # car::Anova()
-  emmeans(~timing) %>% 
-  cld(Letters = letters, reverse=T)
+# we know from this model that there are no interactions between fixed effects and that it is rank defficient because we are trying to predict so many interactions on so little data. We rerun the model without the interaction terms
 
 ```
 
-We can reject Ho that timing has no impact. Over the sites-years, we observed
+#### nitrogen rate on yield
 
+```{r nrate effect}
+dat %>% 
+# removing yield data from lodged plots
+  filter(location != "R100" | stand.age != "3") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>% 
+  filter(timing!="Fall-Spring Split") %>% 
+  ggplot(aes(n.total,yield)) +
+  geom_point(
+    # aes(col=timing)
+  ) +
+  geom_smooth(
+    method = "lm",
+    se=F,
+    formula = y~poly(x,2)
+  )
+```
 
+There is an effect of nitrogen rate on yield and it is quadratic. 
 
+#### timing on yield
 
-We are interested in rate timing stand.age and location as explainers, block as random
+```{r timing effect}
+dat %>% 
+# removing yield data from lodged plots
+  filter(location != "R100" | stand.age != "3") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>% 
+  lmer(
+# changing random effect structure due to singular fit
+    yield~poly(n.total,2)+timing+stand.age + (1|location/year/block),.
+  ) %>% 
+  # summary()
+  # car::Anova()
+  emmeans(~timing) %>% 
+  cld(
+    Letters = letters,
+    reverse = T
+  ) %>% 
+  mutate(group = str_trim(.group)) ->tuk1
 
+dat %>% 
+# removing yield data from lodged plots
+  filter(location != "R100" | stand.age != "3") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>% 
+  group_by(timing) %>% 
+  tally() %>% 
+  left_join(tuk1) %>% 
+  mutate(
+    CI = paste0(round(lower.CL),"-",round(upper.CL))
+  ) %>% 
+  arrange(desc(emmean)) %>% 
+  mutate(emmean = paste0(round(emmean),.group)) %>% 
+  dplyr::select(-c(.group,lower.CL,upper.CL,group)) %>% 
+  dplyr::select(
+    timing,emmean,CI,n
+  ) %>% 
+  knitr::kable(
+    caption = "Estimated marginal means across N rate timings from a mixed effect model of yield as a function of nitrogen rate, timing and stand.age across 9 site-years. No interactions were detected among nitrogen rate, timing and stand age, but main effects were detected from timing"
+  )
+```
+
+We can reject the Ho that yields were the same regardless of timing. Applying in the fall was estimated to have a higher grain yield than when split in the spring, summer or applied alone in the spring. 
+
+#### stand age on yield
+
+```{r stand age effect}
+dat %>% 
+# removing yield data from lodged plots
+  filter(location != "R100" | stand.age != "3") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>% 
+  lmer(
+# changing random effect structure due to singular fit
+    yield~poly(n.total,2)+timing+stand.age + (1|location/year/block),.
+  ) %>% 
+  # summary()
+  # car::Anova()
+  emmeans(~stand.age) %>% 
+  cld()
+```
+
+We can reject Ho that yields were similar regardless of stand.age but cannot make pairwise comparisons among timing levels at an alpha 0.05 and a tukey adjustment. 
+
+### full model, location as fixed effect
 
 ```{r}
 dat %>% 
   filter(location != "R100" | stand.age != "3") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
   lmer(
     yield~poly(n.total,2)*timing*stand.age*location + (1|block),.
   ) %>% 
   # summary()
   car::Anova()
-# this is a lot of model for a small dataset, dropping 182 columns!
+  
+# this is a lot of model for a small dataset, dropping 151 columns!
 # need to take out the junk and rerun a smaller model
 
 # block explains a little
@@ -602,6 +676,58 @@ dat %>%
 # stand.age interacts with timing, location, and nrate
 
 ```
+
+```{r}
+# let's take out non-significant interactions and calm down this model
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
+  lmer(
+    yield~poly(n.total,2)+timing+stand.age+
+      location+stand.age:location +
+      (1|block),.
+  ) %>% 
+  # car::Anova()
+  emmip(location~stand.age)
+
+# So here is the problem, Staples and V17 are only datasets that have data across the three years. R100 can't say anything after we take off the third year. If we are treating location and stand age as fixed effects, we just need more data across the levels of stand age  
+
+# Rerunning full model with interactions but filtering out R100
+
+dat %>% 
+  filter(location != "R100") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
+  lmer(
+    yield~poly(n.total,2)*timing*stand.age*location + (1|block),.
+  ) %>% 
+  # summary()
+  car::Anova()
+
+# still just stand:location interaction
+
+# reducing model parameters to only significant interactions
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
+  filter(location != "R100") %>% 
+  lmer(
+    yield~poly(n.total,2)+timing+stand.age+
+      location+stand.age:location +
+      (1|block),.
+  ) %>% 
+  # car::Anova()
+  emmip(location~stand.age) +
+  labs(
+    caption = "R100 only has one site-year of good yield data so it's filtered out. change in yield over stand.age was different, Staples when down in year 2 and V17 went up. Will need to seperate by location"
+  )
+
+```
+
 
 Let's try looking at each stand.age
 
@@ -611,7 +737,9 @@ Let's try looking at each stand.age
 # stand age 1
 
 dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
+  filter(location != "R100") %>% 
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
   filter(stand.age == "1") %>% 
   lmer(
     yield~poly(n.total,2)*timing*location + (1|block),.
@@ -621,13 +749,15 @@ dat %>%
 
 ```
 
-interaction by nrate:location, need to separate by site
+Main effect of location
 
 ```{r}
 # stand age 2
 
 dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
+  filter(location != "R100") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
   filter(stand.age == "2") %>% 
   lmer(
     yield~poly(n.total,2)*timing*location + (1|block),.
@@ -637,13 +767,15 @@ dat %>%
 
 ```
 
-No interactions
+Main effect of nrate timing and location
 
 ```{r}
 # stand age 3
 
 dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
+  filter(location != "R100" ) %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
   filter(stand.age == "3") %>% 
   lmer(
     yield~poly(n.total,2)*timing*location + (1|block),.
@@ -658,33 +790,50 @@ interaction between timing:location
 
 ```{r}
 dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
+  filter(location != "R100") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
   filter(stand.age == "2") %>% 
   lmer(
     yield~poly(n.total,2)*timing*location + (1|block),.
   ) %>% 
-  # summary()
   car::Anova()
 
 # look at timing
 dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
+  filter(location != "R100") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
   filter(stand.age == "2") %>% 
   lmer(
-    yield~timing + (1|block),.
+    yield~poly(n.total,2)+timing+location + (1|block),.
   ) %>% 
-  emmeans(~timing)
+  # summary()
+  # car::Anova()
+  emmeans(~timing) %>% 
+  cld(
+    Letters=letters,
+    reverse=T
+  ) %>% 
+  mutate(group = str_trim(.group))-> tuk1
 
-# nrate
 dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
+  filter(location != "R100") %>%
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>%
   filter(stand.age == "2") %>% 
-  lmer(
-    yield~poly(n.total,2) + (1|block),.
+  group_by(timing) %>% 
+  tally() %>% 
+  left_join(tuk1) %>% 
+  mutate(
+    CI = paste0(round(lower.CL),"-",round(upper.CL))
   ) %>% 
-  summary()
-
-# y=320x + -922x^2 + 558 
+  arrange(desc(emmean)) %>% 
+  mutate(emmean = paste0(round(emmean),.group)) %>% 
+  dplyr::select(-c(.group,lower.CL,upper.CL,group)) %>% 
+  dplyr::select(
+    timing,emmean,CI,n
+  ) %>% 
+  knitr::kable(
+    caption = "Estimated marginal means across N rate timings from a mixed effect model of yield in second year kernza stands as a function of nitrogen rate, timing and location. No interactions were detected among nitrogen rate, timing and location, but main effects were detected from timing")
 ```
-
-
