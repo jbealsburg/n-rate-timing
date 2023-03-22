@@ -1,12 +1,14 @@
 ---
 title: "N-rate Timing"
 subtitle: "first draft"
+author: "Jesse Puka-Beals"
 date: "`r Sys.Date()`"
-# format: pdf
-# format: revealjs
 # format:
-#   docx:
-#     reference-doc: word_style.docx
+  # pdf:
+      # toc: true
+ # revealjs:
+  # docx:
+    # reference-doc: word_style.docx
 editor: visual
 execute: 
   echo: false
@@ -32,7 +34,7 @@ editor_options:
 
 - The optimal fertility program is likely site specific. 
 
-# Data
+<!-- # Data -->
 
 ```{r setup}
 library(dplyr)
@@ -184,6 +186,8 @@ Here we are fitting a logistic regression with a y intercept of zero because we 
 ```{r}
 dat %>% 
   filter(location == "R100" & stand.age =="3") %>% 
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>% 
   lm(
     formula = lodging~log(n.total+1)*timing+0,.
   )  %>% 
@@ -242,7 +246,7 @@ We observe a pearson correlation coefficient of -0.5 between height and lodging.
 
 # Yield
 
-## cumulative
+## Cumulative
 
 Cumulative yield of kernza stands after 3 years of N fertilizer. We are subsetting dataset, Only V17 and Staples meet this criteria (6 site years). We sum across stand.age to create a cumulative yield and a cumulative amount of N applied, then divide both values by 3 to get a yearly yield~N response. 
 
@@ -255,7 +259,7 @@ dat %>%
   stat_bin()
 ```
 
-### quadratic linear model, yield response to N
+### Quadratic linear model, yield response to N
 
 ```{r}
 
@@ -309,6 +313,8 @@ Quadratic model provides the best fit
 dat %>% 
   filter(location != "R100" | stand.age != "3") %>% 
   filter(stand.age=="3") %>% 
+# removing instances where there was a Fall timing but no N was applied
+  filter(timing !="Fall" | fall != 0) %>% 
   filter(timing == "Control" |
            timing == "Fall" |
            timing == "Spring") %>% 
@@ -318,9 +324,11 @@ dat %>%
   anova()
 ```
 
+We reject Ho that N rate and location do not impact yield
+
 We fail to reject the Ho that timing does not impact yield
 
-### quadratic linear mixed effect model
+### Quadratic linear mixed effect model
 
 Here we have our fixed effect of cumulative N, timing and a random effect of block. Since we only have two sites, location is treated as a fixed effect. 
 
@@ -377,7 +385,7 @@ dat %>%
   stat_bin()
 ```
 
-### full model, site-years as random
+### Full model, site-years as random
 
 ```{r, include=F}
 dat %>% 
@@ -406,7 +414,7 @@ We reject Ho that stand.age, timing and nitrogen rate do not impact yield
 
 Here we have subsetted data so we have removed instances where a timing was Fall but no fall N was applied. We only start doing this here because this is the first time we are looking at timing across years at each year. 
 
-#### nitrogen rate on yield
+#### Nitrogen rate on yield
 
 ```{r nrate effect}
 dat %>% 
@@ -432,7 +440,7 @@ dat %>%
 
 We previously learned the relationship between N rate and yield is best modelled quadratically and then we rejected Ho that nitrogen rate does not impact yield. Here we are visualizing the subsetted data used in the model. 
 
-#### timing on yield
+#### Timing on yield
 
 ```{r timing effect}
 dat %>% 
@@ -479,7 +487,7 @@ We reject the Ho that yields were the same regardless of timing. Applying in the
 
 Since the dataset is unbalanced, we reported estimated marginal means, 95% confidence intervals and the number of data points within each timing used in the model.  
 
-### full model, location as fixed effect
+### Full model, location as fixed effect
 
 We have 4 locations and there is a rationale to model them as fixed effects. This puts a lot of stress on our model by cutting it up by n rate, timing, stand age and location. We end up making a lot of meaningless comparisons and need to reduce the comparisons we make in order to prevent a rank deficient model.
 
@@ -517,7 +525,7 @@ dat %>%
 
 Change in yield over stand.age was different, Staples when down in year 2 and V17 went up. We will need to separate by location or stand age. 
 
-#### slice by stand age
+#### Slice by stand age
 
 Slicing by second stand age yielded the only interesting results. 
 
@@ -575,12 +583,103 @@ TAKEAWAY: across 8 site-years, second year yields were higher when N was applied
 
 #### slice by site
 
-Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and I did in the exploratory data analysis.
+Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and I did in my exploratory data analysis.
 
-The main takeaway is we see a great response from staples but not much beyond that. 
+The main takeaway is we see a great response from staples but not much beyond that site. 
+
+R100 had lodging and is weird because treatments were started till year 2. V17 was kinda limited in a good range of nitrogen rates and NDSU didn't show much response because it was hot and dry when they put down their urea and they only did a spring timing. The messyness of these sites may be better shown in the combined analysis of all site years. 
 
 ##### Staples
 
+```{r}
+dat %>% 
+  filter(location=="Staples") %>% 
+  filter(timing !="Fall" | fall != 0) %>%
+  lmer(yield~poly(n.total,2)*stand.age*timing + (1|block),.) %>% 
+  car::Anova()
+```
+
+Beautiful main effects and no interactions
+
+```{r Staples stand age}
+# removing interactions since they are non significant
+# dat %>% 
+#   filter(location=="Staples") %>% 
+#   filter(timing !="Fall" | fall != 0) %>%
+#   lmer(yield~poly(n.total,2)+stand.age+timing + (1|block),.) %>% 
+#   # car::Anova()
+#   emmeans(~stand.age) %>% 
+#   cld()
+
+dat %>% 
+  filter(location=="Staples") %>% 
+  filter(timing !="Fall" | fall != 0) %>%
+  group_by(stand.age) %>% 
+  summarise(observed_mean = mean(yield)) %>% 
+  mutate(tukey = c("a","b","c")) %>% 
+  knitr::kable()
+```
+
+```{r Staples timing}
+# removing interactions since they are non significant
+# dat %>% 
+#   filter(location=="Staples") %>% 
+#   filter(timing !="Fall" | fall != 0) %>%
+#   lmer(yield~poly(n.total,2)+stand.age+timing + (1|block),.) %>% 
+#   # car::Anova()
+#   emmeans(~timing) %>% 
+#   cld()
+
+dat %>% 
+  filter(location=="Staples") %>% 
+  filter(timing !="Fall" | fall != 0) %>%
+  group_by(timing) %>% 
+  summarise(observed_mean = mean(yield)) %>% 
+  arrange(desc(observed_mean)) %>% 
+  mutate(tukey = c(
+    "a","ab","abc","bc","c"
+  )) %>% 
+  knitr::kable()
+```
+
+
+```{r nrate}
+dat %>% 
+  filter(location=="Staples") %>% 
+  ggplot(aes(n.total,yield,
+             col=stand.age)) +
+  # geom_point() +
+  stat_summary() +
+  stat_smooth(
+    method = "lm",
+    formula = y~poly(x,2),
+    se=F
+  ) +
+  labs(
+    x="N rate (kg N ha)",
+    y="Yield (kg ha)"
+  )
+```
+
+```{r}
+dat %>% 
+  filter(location=="Staples") %>% 
+  ggplot(aes(n.total,yield,
+             col=timing)) +
+  # geom_point() +
+  stat_summary() +
+  stat_smooth(
+    method = "lm",
+    formula = y~poly(x,2),
+    se=F
+  ) +
+  labs(
+    x="N rate (kg N ha)",
+    y="Yield (kg ha)"
+  )
+```
+
+A lot of interesting interpretations here and options for extrapolation
 
 
 

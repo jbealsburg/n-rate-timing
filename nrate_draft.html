@@ -6,6 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Jesse Puka-Beals">
 <meta name="dcterms.date" content="2023-03-22">
 
 <title>N-rate Timing</title>
@@ -55,6 +56,12 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="quarto-title-meta">
 
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jesse Puka-Beals </p>
+          </div>
+  </div>
     
     <div>
     <div class="quarto-title-meta-heading">Published</div>
@@ -72,17 +79,15 @@ ul.task-list li input[type="checkbox"] {
 <section id="key-points" class="level1">
 <h1>Key points</h1>
 <ul>
-<li><p>We applied N at different rates and timings to IWG stands over 10 site-years</p></li>
+<li><p>We applied N at different rates and timings to IWG stands over 10 site-years and collected yield, plant height and lodging data.</p></li>
 <li><p>We observed serious lodging in only 1 site-year, and observed lower lodging when N was applied at lower rates and further away from harvest (i.e.&nbsp;fall vs.&nbsp;spring or summer). Lodging was negatively correlated with plant height (<span class="math inline">\(r=-0.5\)</span>)</p></li>
 <li><p>For both cumulative and yearly yield response to nitrogen rate, a quadratic relationship fit the data best, suggesting there is an optimal N rate.</p></li>
 <li><p>Combined across all site-years, yields were higher when N was applied in the fall versus in the spring or when split with a summer application.</p></li>
-<li><p>Of sites where we tracked yield over three years, we failed to reject the Ho that N rate and timing had no impact on the yield of the stand.</p></li>
-<li><p>The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More research is required to capture the variability of yield response to N rate and timing.</p></li>
+<li><p>Of sites where we tracked yield over three years, we failed to reject the Ho that yields differed among stands that recieved different N rates and timings.</p></li>
+<li><p>The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More field trials are required to capture the variability of yield response to N rate and timing.</p></li>
 <li><p>The optimal fertility program is likely site specific.</p></li>
 </ul>
-</section>
-<section id="data" class="level1">
-<h1>Data</h1>
+<!-- # Data -->
 <div class="cell">
 
 </div>
@@ -241,10 +246,10 @@ height  -0.4993655  1.0000000</code></pre>
 <section id="yield" class="level1">
 <h1>Yield</h1>
 <section id="cumulative" class="level2">
-<h2 class="anchored" data-anchor-id="cumulative">cumulative</h2>
+<h2 class="anchored" data-anchor-id="cumulative">Cumulative</h2>
 <p>Cumulative yield of kernza stands after 3 years of N fertilizer. We are subsetting dataset, Only V17 and Staples meet this criteria (6 site years). We sum across stand.age to create a cumulative yield and a cumulative amount of N applied, then divide both values by 3 to get a yearly yield~N response.</p>
 <section id="quadratic-linear-model-yield-response-to-n" class="level3">
-<h3 class="anchored" data-anchor-id="quadratic-linear-model-yield-response-to-n">quadratic linear model, yield response to N</h3>
+<h3 class="anchored" data-anchor-id="quadratic-linear-model-yield-response-to-n">Quadratic linear model, yield response to N</h3>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1020.782</code></pre>
@@ -285,10 +290,11 @@ Residuals              28 2341662   83631
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
+<p>We reject Ho that N rate and location do not impact yield</p>
 <p>We fail to reject the Ho that timing does not impact yield</p>
 </section>
 <section id="quadratic-linear-mixed-effect-model" class="level3">
-<h3 class="anchored" data-anchor-id="quadratic-linear-mixed-effect-model">quadratic linear mixed effect model</h3>
+<h3 class="anchored" data-anchor-id="quadratic-linear-mixed-effect-model">Quadratic linear mixed effect model</h3>
 <p>Here we have our fixed effect of cumulative N, timing and a random effect of block. Since we only have two sites, location is treated as a fixed effect.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -321,11 +327,11 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p>We are using all site years except third stand age of R100 due to high lodging.</p>
 <p>How does N timing and N amount correlate with yield in a given year?</p>
 <section id="full-model-site-years-as-random" class="level3">
-<h3 class="anchored" data-anchor-id="full-model-site-years-as-random">full model, site-years as random</h3>
+<h3 class="anchored" data-anchor-id="full-model-site-years-as-random">Full model, site-years as random</h3>
 <p>We reject Ho that stand.age, timing and nitrogen rate do not impact yield</p>
 <p>Here we have subsetted data so we have removed instances where a timing was Fall but no fall N was applied. We only start doing this here because this is the first time we are looking at timing across years at each year.</p>
 <section id="nitrogen-rate-on-yield" class="level4">
-<h4 class="anchored" data-anchor-id="nitrogen-rate-on-yield">nitrogen rate on yield</h4>
+<h4 class="anchored" data-anchor-id="nitrogen-rate-on-yield">Nitrogen rate on yield</h4>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="nrate_draft_files/figure-html/nrate%20effect-1.png" class="img-fluid" width="672"></p>
@@ -334,7 +340,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p>We previously learned the relationship between N rate and yield is best modelled quadratically and then we rejected Ho that nitrogen rate does not impact yield. Here we are visualizing the subsetted data used in the model.</p>
 </section>
 <section id="timing-on-yield" class="level4">
-<h4 class="anchored" data-anchor-id="timing-on-yield">timing on yield</h4>
+<h4 class="anchored" data-anchor-id="timing-on-yield">Timing on yield</h4>
 <div class="cell">
 <div class="cell-output-display">
 <table class="table table-sm table-striped">
@@ -393,7 +399,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </section>
 </section>
 <section id="full-model-location-as-fixed-effect" class="level3">
-<h3 class="anchored" data-anchor-id="full-model-location-as-fixed-effect">full model, location as fixed effect</h3>
+<h3 class="anchored" data-anchor-id="full-model-location-as-fixed-effect">Full model, location as fixed effect</h3>
 <p>We have 4 locations and there is a rationale to model them as fixed effects. This puts a lot of stress on our model by cutting it up by n rate, timing, stand age and location. We end up making a lot of meaningless comparisons and need to reduce the comparisons we make in order to prevent a rank deficient model.</p>
 <p>We ran a full factorial model, then would remove interaction terms that were insignificant and rerun the model.</p>
 <p>we removed R100 from the dataset (site years = 8) because it only had one stand age after we removed third stand age for lodging and when stand.age is modelled as a fixed effect the R100 data doesn’t provide any utility to testing those hypotheses</p>
@@ -437,7 +443,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 <p>Change in yield over stand.age was different, Staples when down in year 2 and V17 went up. We will need to separate by location or stand age.</p>
 <section id="slice-by-stand-age" class="level4">
-<h4 class="anchored" data-anchor-id="slice-by-stand-age">slice by stand age</h4>
+<h4 class="anchored" data-anchor-id="slice-by-stand-age">Slice by stand age</h4>
 <p>Slicing by second stand age yielded the only interesting results.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -511,7 +517,111 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </section>
 <section id="slice-by-site" class="level4">
 <h4 class="anchored" data-anchor-id="slice-by-site">slice by site</h4>
-<p>Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and makes a lot of sense.</p>
+<p>Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and I did in my exploratory data analysis.</p>
+<p>The main takeaway is we see a great response from staples but not much beyond that site.</p>
+<p>R100 had lodging and is weird because treatments were started till year 2. V17 was kinda limited in a good range of nitrogen rates and NDSU didn’t show much response because it was hot and dry when they put down their urea and they only did a spring timing. The messyness of these sites may be better shown in the combined analysis of all site years.</p>
+<section id="staples" class="level5">
+<h5 class="anchored" data-anchor-id="staples">Staples</h5>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: yield
+                                     Chisq Df Pr(&gt;Chisq)    
+poly(n.total, 2)                   11.1970  2   0.003703 ** 
+stand.age                         317.2548  2  &lt; 2.2e-16 ***
+timing                             33.8945  4  7.833e-07 ***
+poly(n.total, 2):stand.age          6.8114  4   0.146200    
+poly(n.total, 2):timing             3.6056  6   0.729878    
+stand.age:timing                   12.9043  7   0.074475 .  
+poly(n.total, 2):stand.age:timing   1.9117 10   0.996973    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<p>Beautiful main effects and no interactions</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;">stand.age</th>
+<th style="text-align: right;">observed_mean</th>
+<th style="text-align: left;">tukey</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1</td>
+<td style="text-align: right;">754.4952</td>
+<td style="text-align: left;">a</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2</td>
+<td style="text-align: right;">528.7498</td>
+<td style="text-align: left;">b</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">3</td>
+<td style="text-align: right;">257.7972</td>
+<td style="text-align: left;">c</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<table class="table table-sm table-striped">
+<thead>
+<tr class="header">
+<th style="text-align: left;">timing</th>
+<th style="text-align: right;">observed_mean</th>
+<th style="text-align: left;">tukey</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Fall</td>
+<td style="text-align: right;">541.0500</td>
+<td style="text-align: left;">a</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Fall-Summer Split</td>
+<td style="text-align: right;">535.4278</td>
+<td style="text-align: left;">ab</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Spring</td>
+<td style="text-align: right;">513.0013</td>
+<td style="text-align: left;">abc</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spring-Summer Split</td>
+<td style="text-align: right;">464.6167</td>
+<td style="text-align: left;">bc</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Control</td>
+<td style="text-align: right;">232.2756</td>
+<td style="text-align: left;">c</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/nrate-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-21-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>A lot of interesting interpretations here and options for extrapolation</p>
+</section>
 </section>
 </section>
 </section>
