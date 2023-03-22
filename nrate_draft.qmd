@@ -1,11 +1,11 @@
 ---
 title: "N-rate Timing"
 date: "`r Sys.Date()`"
-format: pdf
+# format: pdf
 # format: revealjs
 # format:
-  # docx:
-    # reference-doc: word_style.docx
+#   docx:
+#     reference-doc: word_style.docx
 editor: visual
 execute: 
   echo: false
@@ -15,7 +15,7 @@ editor_options:
   chunk_output_type: console
 ---
 
-### To do
+# To do
 
 Distill brainstorming done in the EDA scripts, report.Rmd and Dominics word doc into a singular first draft.
 
@@ -82,11 +82,33 @@ read.csv(
   )
 ```
 
+```{r}
+dat %>% 
+  group_by(n.total,timing,stand.age,location) %>% 
+  tally() %>% 
+  # print(n=120)
+  knitr::kable(
+    caption = "The n-rate timing dataset"
+  )
+```
+
+This is an unbalanced dataset because design was not consistent across sites. One solution is to analyze each site separately, but first we try to see if there is a consistent response across site-years.
+
+```{r}
+dat %>% 
+  group_by(location,year) %>% 
+  tally() %>% 
+  knitr::kable(
+    caption = "we have 10 site-years, more than enough to be a random effect"
+  )
+```
+
+
 # Lodging
 
 Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging.
 
-In general, if lodging is above 6, the yield data is questionable. 
+In general, if lodging is above 6, the yield data is questionable.
 
 ```{r}
 dat %>% 
@@ -95,7 +117,7 @@ dat %>%
   facet_wrap(~location)
 ```
 
-Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate. 
+Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate.
 
 ## R100
 
@@ -203,7 +225,7 @@ dat %>%
 
 ### Analysis
 
-When we fit logistic curves, it looked like the lodging was lowest in the control and fall plots. Let's see if this is true. 
+When we fit logistic curves, it looked like the lodging was lowest in the control and fall plots. Let's see if this is true.
 
 ```{r}
 dat %>% 
@@ -228,15 +250,13 @@ dat %>%
   cld()
 ```
 
-Obviously, if we look just at timing then the control plots have less lodging than the rest of the plots receiving N. 
-Takeaway here is that lodging is correlated with increases in N, but we cannot reject the Ho that timing does not have an impact. It looks like fall applied N had less impact on lodging, but we cannot reject Ho. 
+Obviously, if we look just at timing then the control plots have less lodging than the rest of the plots receiving N. Takeaway here is that lodging is correlated with increases in N, but we cannot reject the Ho that timing does not have an impact. It looks like fall applied N had less impact on lodging, but we cannot reject Ho.
 
-Based on analysis, we are better off just fitting a general curve to lodging by nrate, we will need to do more analysis to find the best curve with the most fitting relationship. 
-
+Based on analysis, we are better off just fitting a general curve to lodging by nrate, we will need to do more analysis to find the best curve with the most fitting relationship.
 
 ## V17
 
-Lodging is below threshold of 6, meaning we think this yield data is still good. 
+Lodging is below threshold of 6, meaning we think this yield data is still good.
 
 We are just looking to see if similar trends to R100 where applying more N leads to more lodging and where applying N closer to harvest correlates with more lodging
 
@@ -247,7 +267,7 @@ dat %>%
   geom_boxplot()
 ```
 
-Lodging only occurred in the stands second year of production. This could've just been a harvest timing issue, but harvest was 3Aug so unlikely. 
+Lodging only occurred in the stands second year of production. This could've just been a harvest timing issue, but harvest was 3Aug so unlikely.
 
 ```{r}
 dat %>% 
@@ -260,7 +280,7 @@ dat %>%
   )
 ```
 
-Not a strong relationship between N rate and lodging. There is a good amount of lodging in control. Nothing to see here. 
+Not a strong relationship between N rate and lodging. There is a good amount of lodging in control. Nothing to see here.
 
 ```{r}
 dat %>% 
@@ -271,13 +291,13 @@ dat %>%
 
 # Plant height
 
-Plant height is also not a measurement of primary interest. 
+Plant height is also not a measurement of primary interest.
 
 We are curious to what extent plant height relates to lodging in R100
 
-We are curious more broadly how plant height was distributed across experiments. 
+We are curious more broadly how plant height was distributed across experiments.
 
-## R100 - third year with lodging only
+## R100 year 3
 
 ```{r}
 dat %>% 
@@ -291,7 +311,7 @@ dat %>%
   )
 ```
 
-We observe an overall trend of decreasing plant height as N rate increases. 
+We observe an overall trend of decreasing plant height as N rate increases.
 
 ```{r}
 dat %>% 
@@ -313,7 +333,7 @@ dat %>%
 
 ```
 
-We have learned from R100 in it's third stand age that as nrate increases, there is an increase in lodging and a decrease in plant height. 
+We have learned from R100 in it's third stand age that as nrate increases, there is an increase in lodging and a decrease in plant height.
 
 Let's see if they're correlated
 
@@ -325,12 +345,11 @@ dat %>%
   cor(method = "pearson") 
 ```
 
-We observe a pearson correlation coefficient of -0.5 between height and lodging. This is considered between a moderate and strong correlation. 
+We observe a pearson correlation coefficient of -0.5 between height and lodging. This is considered between a moderate and strong correlation.
 
-## Beyond R100
+## V17
 
-We only have height data for V17 in stand ages 2 and 3 besides the R100 in stand age 3. 
-
+We only have height data for V17 in stand ages 2 and 3 besides the R100 in stand age 3.
 
 ```{r}
 dat %>% 
@@ -351,12 +370,11 @@ dat %>%
 
 We cannot reject Ho that plant height is the same across n rates
 
-
 # Yield
 
-## cumulative 
+## cumulative
 
-Cumulative yield of kernza stands after 3 years of N fertilizer (V17 and Staples)
+Cumulative yield of kernza stands after 3 years of N fertilizer. Only V17 and Staples meet this criteria. One advantage of this is that we do not have to look at stand.age since we are looking across all three years. 
 
 ```{r}
 dat %>% 
@@ -422,7 +440,9 @@ dat %>%
 
 Now that I'm modeling quadratically, we can reject the Ho there is no relationship between nitrogen rate and yield, but we cannot reject Ho that timing doesn't matter
 
-## mixed effect model
+### mixed effect model
+
+Here we have our fixed effect of cumulative N, timing and a random effect of block. Since we only have two sites, location is treated as a fixed effect. 
 
 ```{r}
 dat %>% 
@@ -432,14 +452,14 @@ dat %>%
            timing == "Fall" |
            timing == "Spring") %>% 
   lmer(
-    yield.cum ~ poly(cumn,2)*location*timing+(1|block),.
+    yield.cum ~ poly(cumn,2)*timing*location+(1|block),.
   ) %>% 
   # summary()
   # AIC()
   car::Anova()
 ```
 
-The best model I can create (lowest AIC) finds a difference in cumulative yield by location, but not an effect of nrate, timing or an interaction. 
+The best model I can create (lowest AIC) finds a difference in cumulative yield by location, but not an effect of nrate, timing or an interaction.
 
 ```{r}
 dat %>% 
@@ -458,6 +478,213 @@ dat %>%
     formula = y~y)
 ```
 
+TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years. I would say our data suggests a quadratic or logarithmic relationship at around 60 kg N ha per year does not result in noticeably greater grain yields.
 
-TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years. I would say our data suggests a quadratic or logarithmic relationship at around 60 kg N ha per year does not result in noticeably greater grain yields.  
+## Yearly performance
+
+Now we can use our full dataset with the exception of R100 in third year. 
+
+How does N timing and N amount correlate with yield?
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  ggplot(aes(yield)) +
+  stat_bin()
+```
+
+### N rate as quadratic or linear?
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  ggplot(aes(n.total,yield)) +
+  geom_point() +
+  geom_smooth(
+    se=T,
+    aes(color = "loess")
+  ) +
+  geom_smooth(
+    se=T,
+    aes(color = "quadratic"),
+    method = "lm",
+    formula = y~poly(x,2)
+  ) + 
+  geom_smooth(
+    se=T,
+    aes(color = "linear"),
+    method = "lm"
+  )
+```
+
+yield response to N appears to be more quadratic than linear, improper estimation happens at very high and low n rates. let's test a quadratic vs linaer model
+
+```{r, eval=F}
+dat %>%
+  filter(location != "R100" | stand.age != "3") %>%
+  lmer(formula = yield ~ n.total + (1 | block), .) %>%
+  summary()
+# alright we can lose the block effect, it adds nothing
+
+dat %>%
+  filter(location != "R100" | stand.age != "3") %>%
+  lm(formula = yield ~ n.total, .) %>%
+  AIC()
+  
+dat %>%
+  filter(location != "R100" | stand.age != "3") %>%
+  lm(formula = yield ~ poly(n.total,2), .) %>%
+  AIC()
+
+# quadratic is slightly better
+```
+
+Quadratic is better!
+
+### full model
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>%
+  group_by(location,year) %>%
+  tally()
+
+# We still have 9 site-years, let's model these as random and see if we see an effect of nrate
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>%
+# removing instances where there was a Fall timing but no N was actually applied
+  filter(timing !="Fall" | fall != 0) %>% 
+  lmer(
+    yield~poly(n.total,2)*timing*stand.age + (1|location/year/block),.
+  ) %>% 
+  # summary()
+  car::Anova()
+  emmip(.,
+        timing~stand.age)
+
+# We observe nonEst for certain emmeans because there is no data for certain factor combinations. 
+  
+# we know from this model that there is not an interaction, so we just simply rerun the model without the interaction term
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>%
+  lmer(
+    yield~poly(n.total,2) + timing + (1|location/year/block),.
+  ) %>% 
+  # car::Anova()
+  emmeans(~timing) %>% 
+  cld(Letters = letters, reverse=T)
+
+```
+
+We can reject Ho that timing has no impact. Over the sites-years, we observed
+
+
+
+
+We are interested in rate timing stand.age and location as explainers, block as random
+
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>%
+  lmer(
+    yield~poly(n.total,2)*timing*stand.age*location + (1|block),.
+  ) %>% 
+  # summary()
+  car::Anova()
+# this is a lot of model for a small dataset, dropping 182 columns!
+# need to take out the junk and rerun a smaller model
+
+# block explains a little
+
+# stand.age interacts with timing, location, and nrate
+
+```
+
+Let's try looking at each stand.age
+
+#### slice by stand age
+
+```{r}
+# stand age 1
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age == "1") %>% 
+  lmer(
+    yield~poly(n.total,2)*timing*location + (1|block),.
+  ) %>% 
+  # summary()
+  car::Anova()
+
+```
+
+interaction by nrate:location, need to separate by site
+
+```{r}
+# stand age 2
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age == "2") %>% 
+  lmer(
+    yield~poly(n.total,2)*timing*location + (1|block),.
+  ) %>% 
+  # summary()
+  car::Anova()
+
+```
+
+No interactions
+
+```{r}
+# stand age 3
+
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age == "3") %>% 
+  lmer(
+    yield~poly(n.total,2)*timing*location + (1|block),.
+  ) %>% 
+  # summary()
+  car::Anova()
+```
+
+interaction between timing:location
+
+#### stand age 2 with no interactions
+
+```{r}
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age == "2") %>% 
+  lmer(
+    yield~poly(n.total,2)*timing*location + (1|block),.
+  ) %>% 
+  # summary()
+  car::Anova()
+
+# look at timing
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age == "2") %>% 
+  lmer(
+    yield~timing + (1|block),.
+  ) %>% 
+  emmeans(~timing)
+
+# nrate
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age == "2") %>% 
+  lmer(
+    yield~poly(n.total,2) + (1|block),.
+  ) %>% 
+  summary()
+
+# y=320x + -922x^2 + 558 
+```
+
 
