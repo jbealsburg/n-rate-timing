@@ -1,5 +1,6 @@
 ---
 title: "N-rate Timing"
+subtitle: "first draft"
 date: "`r Sys.Date()`"
 # format: pdf
 # format: revealjs
@@ -15,9 +16,16 @@ editor_options:
   chunk_output_type: console
 ---
 
-# To do
+# Key points
 
-Distill brainstorming done in the EDA scripts, report.Rmd and Dominics word doc into a singular first draft.
+- We applied N at different rates and timings to IWG stands over 10 site-years
+
+- We observed serious lodging in only 1 site-year, and observed lower lodging when N was applied at lower rates and further away from harvest (i.e. fall vs. spring or summer). Lodging was negatively correlated with plant height ($r=-0.5$)
+
+- Of sites where we tracked yield over three years, we failed to reject the Ho that N rate and timing had no impact on the yield of the stand.
+
+
+
 
 # Data
 
@@ -427,6 +435,36 @@ dat %>%
 
 Ok, so there is an effect of cumulative N when modelled quadratically versus linear
 
+```{r, eval=F}
+
+# NEEDS WORKS
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  # ggplot(aes(cumn,yield.cum)) +
+  # geom_point() +
+  # stat_smooth(
+  #   method = "lm",
+  #   formula = y~poly(x,2)
+  # )
+  lm(
+    yield.cum ~ poly(cumn,2),.
+  ) 
+
+# I do not understand why this function won't predict cumulative yield as a function of cumulative n accurately
+f=function(x){
+  1575.3+117.9*x-1705.5*(x^2)
+}
+
+f(200)
+
+# this calculated the maximum of my function, but I cannot get my function to make sense
+optimize(f,interval = c(100,400))
+
+```
+
+Look at timing...
+
 ```{r}
 dat %>% 
   filter(location != "R100" | stand.age != "3") %>% 
@@ -441,6 +479,9 @@ dat %>%
 ```
 
 Now that I'm modeling quadratically, we can reject the Ho there is no relationship between nitrogen rate and yield, but we cannot reject Ho that timing doesn't matter
+
+
+
 
 ### mixed effect model
 
@@ -786,7 +827,7 @@ dat %>%
 
 interaction between timing:location
 
-#### stand age 2 with no interactions
+##### stand age 2 with no interactions
 
 ```{r}
 dat %>% 
@@ -837,3 +878,9 @@ dat %>%
   knitr::kable(
     caption = "Estimated marginal means across N rate timings from a mixed effect model of yield in second year kernza stands as a function of nitrogen rate, timing and location. No interactions were detected among nitrogen rate, timing and location, but main effects were detected from timing")
 ```
+
+#### slice by site
+
+Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and makes a lot of sense. 
+
+
