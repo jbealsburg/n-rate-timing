@@ -18,7 +18,7 @@ editor_options:
 
 # Key points
 
-- We applied N at different rates and timings to IWG stands over 10 site-years
+- We applied N at different rates and timings to IWG stands over 10 site-years and collected yield, plant height and lodging data. 
 
 - We observed serious lodging in only 1 site-year, and observed lower lodging when N was applied at lower rates and further away from harvest (i.e. fall vs. spring or summer). Lodging was negatively correlated with plant height ($r=-0.5$)
 
@@ -28,7 +28,7 @@ editor_options:
 
 - Of sites where we tracked yield over three years, we failed to reject the Ho that yields differed among stands that recieved different N rates and timings. 
 
-- The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More research is required to capture the variability of yield response to N rate and timing. 
+- The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More field trials are required to capture the variability of yield response to N rate and timing. 
 
 - The optimal fertility program is likely site specific. 
 
@@ -578,6 +578,8 @@ TAKEAWAY: across 8 site-years, second year yields were higher when N was applied
 Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and I did in the exploratory data analysis.
 
 The main takeaway is we see a great response from staples but not much beyond that. 
+
+##### Staples
 
 
 
