@@ -53,21 +53,7 @@ read.csv(
       c(block,location, id),
       factor
     )
-  ) %>% 
-  mutate(timing = gsub("[0-9]","",treatment),
-         timing = str_to_title(timing),  
-          timing = str_trim(timing)) %>%
-  mutate(timing = fct_recode(timing,
-                             "Fall-Spring Split" = "Split",
-                             "Fall-Summer Split" = "Fall Split",
-                             "Spring-Summer Split" = "Spring Split")) %>% 
-  mutate(n.total = fall+spring+summer) %>%
-  # we assume no lodging unless noted
-  mutate(lodging = replace_na(lodging,0)) %>% 
-  # averaging across height data for now to make things easier
-  mutate(height = (height_1+height_2+height_3+height_4+height_5)/5,
-         .after=height_5) %>% 
-  dplyr::select(-c(height_1,height_2,height_3,height_4,height_5)) -> dat
+  ) -> dat
 
 ```
 
@@ -88,7 +74,7 @@ read.csv(
 
 # Methods
 
-```{r, include=F}
+```{r field activities, include=F}
 read.csv(
   "field_activities.csv"
 ) %>% 
@@ -97,7 +83,7 @@ read.csv(
   )
 ```
 
-```{r}
+```{r total dataset, include=F}
 dat %>% 
   group_by(n.total,timing,stand.age,location) %>% 
   tally() %>% 
@@ -107,14 +93,14 @@ dat %>%
   )
 ```
 
-This is an unbalanced dataset because design was not consistent across sites. One solution is to analyze each site separately, but first we try to see if there is a consistent response across site-years.
+Our dataset is unbalanced because design was not consistent across sites. First we try to see a consistent response across site-years, then we may analyze each site seperately. 
 
 ```{r}
 dat %>% 
   group_by(location,year) %>% 
   tally() %>% 
   knitr::kable(
-    caption = "we have 10 site-years, more than enough to be a random effect"
+    caption = "Ee have 10 site-years, more than enough to be a random effect"
   )
 ```
 
@@ -125,7 +111,7 @@ Understanding lodging is not a primary objective of this experiment, this data w
 
 In general, if lodging is above 6, the yield data is questionable.
 
-```{r}
+```{r, include=F}
 dat %>% 
   ggplot(aes(lodging)) +
   stat_bin() + 
@@ -138,7 +124,7 @@ Only R100 and V17 showed lodging, and only R100 had severe lodging to the point 
 
 R100 only had N applied in the second and third year.
 
-```{r}
+```{r, include=F}
 dat %>% 
   filter(location == "R100") %>% 
   ggplot(aes(stand.age,lodging)) +
@@ -156,19 +142,22 @@ dat %>%
     method = "lm",
     formula = y~log(x+1),
     se=F
+  ) +
+  labs(
+    x="N rate prior to harvest"
   )
 ```
 
 We observe a general increase in lodging as nitrogen rate increases. We fit a logistic curve since lodging cannot be greater than 10 and we expect as we increase N rate more lodging will get closer to 10. This curve is obviously not perfect.
 
-```{r}
+```{r, include=F}
 dat %>% 
   filter(location == "R100" & stand.age =="3") %>% 
   ggplot(aes(fall+spring+summer,lodging, col = timing)) +
   geom_point()
 ```
 
-Looking at treatment timing with N rate, I see a bit more red dots (fall) with lower lodging, but it's messy. Sprint split has some of the most lodging, but also an outlier at near 150 kg N ha where there was no lodging
+<!-- Looking at treatment timing with N rate, I see a bit more red dots (fall) with lower lodging, but it's messy. Sprint split has some of the most lodging, but also an outlier at near 150 kg N ha where there was no lodging -->
 
 ```{r}
 dat %>% 
@@ -187,60 +176,7 @@ dat %>%
 
 Here we are fitting a logistic regression with a y intercept of zero because we assume at 0N there is no lodging (as shown with control plots) and that lodging score will increase as nitrogen rate increases but that lodging will never exceed 10. The takeaway from this figure is that there is no lodging at 0N and that you see less lodging when you apply in fall and more when you apply in spring and summer.
 
-```{r}
-dat %>% 
-  filter(location == "R100" &
-           stand.age == "3") %>% 
-  pivot_longer(
-    cols = c(fall,spring,summer),
-    values_to = "n.rate",
-    names_to = "n.timing"
-  ) %>% 
-  # glimpse() #lodging is now repeated 3 times
-  ggplot(aes(x=n.rate,lodging,
-             group = n.timing,
-             col = n.timing)) +
-  stat_summary() +
-  stat_smooth(
-    se=F,
-    method = "lm"
-  )
-```
-
-This is a funkier way to look at this data based on how I organized the data and it is confusing so may not be worth trying to interpret.. Every lodging observation has a corresponding amount of N applied in fall, spring and summer. All of the spring plots, for example, also are plots where no N was applied in the fall. So within each of the timings (fall, spring or summer), the entire lodging dataset is represented. This also means the lodging dataset is duplicated 3 times when we do this. I am not sure if this is ok, but this is how I think this can be interpreted.
-
-With more N there is more lodging, but we also see more lodging when the N is applied closer to harvest.
-
-| Timing of N | m (lodging \~ m\*nrate + b) |
-|-------------|-----------------------------|
-| fall        | -0.002                      |
-| spring      | 0.025                       |
-| summer      | 0.041                       |
-
-: Linear regression parameters for lodging response to nitrogen timing
-
-```{r, eval=F}
-dat %>% 
-  filter(location == "R100" &
-           stand.age == "3") %>% 
-  pivot_longer(
-    cols = c(fall,spring,summer),
-    values_to = "n.rate",
-    names_to = "n.timing"
-  ) %>% 
-  # filter(
-  #   n.timing=="fall"
-  #   # n.timing == "spring"
-  #   # n.timing == "summer"
-  # ) %>% 
-  lm(
-    lodging~n.rate,.
-  )
-```
-
 ### Analysis
-
-When we fit logistic curves, it looked like the lodging was lowest in the control and fall plots. Let's see if this is true.
 
 ```{r}
 dat %>% 
@@ -251,66 +187,15 @@ dat %>%
   anova()
 ```
 
-We cannot reject Ho that timing has an impact on lodging.
+We reject Ho that the rate of nitrogen does not impact lodging. 
 
-```{r}
-
-dat %>% 
-  filter(location == "R100" & stand.age =="3") %>% 
-  lm(
-    formula = lodging~timing,.
-  )  %>% 
-  # anova() %>% 
-  emmeans::emmeans(~timing) %>% 
-  cld()
-```
-
-Obviously, if we look just at timing then the control plots have less lodging than the rest of the plots receiving N. Takeaway here is that lodging is correlated with increases in N, but we cannot reject the Ho that timing does not have an impact. It looks like fall applied N had less impact on lodging, but we cannot reject Ho.
-
-Based on analysis, we are better off just fitting a general curve to lodging by nrate, we will need to do more analysis to find the best curve with the most fitting relationship.
-
-## V17
-
-Lodging is below threshold of 6, meaning we think this yield data is still good.
-
-We are just looking to see if similar trends to R100 where applying more N leads to more lodging and where applying N closer to harvest correlates with more lodging
-
-```{r}
-dat %>% 
-  filter(location == "V17") %>% 
-  ggplot(aes(stand.age,lodging)) +
-  geom_boxplot()
-```
-
-Lodging only occurred in the stands second year of production. This could've just been a harvest timing issue, but harvest was 3Aug so unlikely.
-
-```{r}
-dat %>% 
-  filter(location == "V17" & stand.age == "2") %>% 
-  ggplot(aes(fall+spring+summer,lodging)) +
-  geom_point() +
-  stat_smooth(
-    method = "lm",
-    se=F
-  )
-```
-
-Not a strong relationship between N rate and lodging. There is a good amount of lodging in control. Nothing to see here.
-
-```{r}
-dat %>% 
-  filter(location == "V17" & stand.age == "2") %>% 
-  ggplot(aes(fall+spring+summer,lodging, col = timing)) +
-  geom_point()
-```
+We fail to reject Ho that timing has an impact on lodging.
 
 # Plant height
 
 Plant height is also not a measurement of primary interest.
 
-We are curious to what extent plant height relates to lodging in R100
-
-We are curious more broadly how plant height was distributed across experiments.
+To what extent does plant height relate to lodging in R100?
 
 ## R100 year 3
 
@@ -326,34 +211,24 @@ dat %>%
   )
 ```
 
-We observe an overall trend of decreasing plant height as N rate increases.
+We observe an overall trend of decreasing plant height as N rate increases, modeled best quadratically.
 
 ```{r}
 dat %>% 
   filter(location == "R100" & stand.age =="3") %>% 
   lm(
-    height~n.total+timing,.
+    height~poly(n.total,2)+timing,.
   ) %>% 
   anova()
-
 ```
 
-Cannot reject Ho that timing has no effect on the effect of n rate on plant height
+We reject Ho that nrate does not impact height
+
+We fail to reject Ho that timing has no effect on plant height
+
+We have learned from R100 in it's third stand age that as nrate increases, there is an increase in lodging and a decrease in plant height. To what extent are they correlated?
 
 ```{r}
-dat %>% 
-  filter(location == "R100" & stand.age =="3") %>% 
-  ggplot(aes(fall+spring+summer,height, col = timing)) +
-  geom_point()
-
-```
-
-We have learned from R100 in it's third stand age that as nrate increases, there is an increase in lodging and a decrease in plant height.
-
-Let's see if they're correlated
-
-```{r}
-
 dat %>% 
   filter(location == "R100" & stand.age =="3") %>%
   dplyr::select(lodging,height) %>% 
@@ -362,36 +237,13 @@ dat %>%
 
 We observe a pearson correlation coefficient of -0.5 between height and lodging. This is considered between a moderate and strong correlation.
 
-## V17
-
-We only have height data for V17 in stand ages 2 and 3 besides the R100 in stand age 3.
-
-```{r}
-dat %>% 
-  ggplot(aes(height)) +
-  stat_bin() +
-  facet_wrap(~location)
-```
-
-alright, we only have two sites with plant height data
-
-```{r}
-dat %>% 
-  filter(location != "R100") %>% 
-  # View()
-  lm(height~n.total,.) %>% 
-  anova()
-```
-
-We cannot reject Ho that plant height is the same across n rates
-
 # Yield
 
 ## cumulative
 
-Cumulative yield of kernza stands after 3 years of N fertilizer. Only V17 and Staples meet this criteria. One advantage of this is that we do not have to look at stand.age since we are looking across all three years. 
+Cumulative yield of kernza stands after 3 years of N fertilizer. We are subsetting dataset, Only V17 and Staples meet this criteria (6 site years). We sum across stand.age to create a cumulative yield and a cumulative amount of N applied, then divide both values by 3 to get a yearly yield~N response. 
 
-```{r}
+```{r, include=F}
 dat %>% 
   # Removing R100 plots in third year because lodging was so high
   filter(location != "R100" | stand.age != "3") %>% 
@@ -400,33 +252,9 @@ dat %>%
   stat_bin()
 ```
 
-### quadratic model
+### quadratic linear model, yield response to N
 
 ```{r}
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
-  filter(stand.age=="3") %>% 
-  ggplot(aes(cumn,yield.cum)) +
-  geom_point() +
-  geom_smooth(
-    se=F,
-    method = "lm",
-    formula = y~y
-  ) +
-  geom_smooth(
-    se=F,
-    method = "lm",
-    formula = y~poly(x,2),
-    linetype=3
-  ) 
-
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
-  filter(stand.age=="3") %>% 
-  lm(
-    yield.cum ~ poly(cumn,2),.
-  ) %>% 
-  AIC()
 
 dat %>% 
   filter(location != "R100" | stand.age != "3") %>% 
@@ -435,40 +263,44 @@ dat %>%
     yield.cum ~ poly(cumn,1),.
   ) %>% 
   AIC()
-# quadratic is better than linear for fitting the data
-```
 
-Ok, so there is an effect of cumulative N when modelled quadratically versus linear
-
-```{r, eval=F}
-
-# NEEDS WORKS
 dat %>% 
   filter(location != "R100" | stand.age != "3") %>% 
   filter(stand.age=="3") %>% 
-  # ggplot(aes(cumn,yield.cum)) +
-  # geom_point() +
-  # stat_smooth(
-  #   method = "lm",
-  #   formula = y~poly(x,2)
-  # )
   lm(
     yield.cum ~ poly(cumn,2),.
-  ) 
+  ) %>% 
+  AIC()
 
-# I do not understand why this function won't predict cumulative yield as a function of cumulative n accurately
-f=function(x){
-  1575.3+117.9*x-1705.5*(x^2)
-}
+# quadratic is better than linear for fitting the data
 
-f(200)
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  lm(
+    yield.cum~poly(cumn,2),.
+  ) %>% 
+  anova()
 
-# this calculated the maximum of my function, but I cannot get my function to make sense
-optimize(f,interval = c(100,400))
-
+dat %>% 
+  filter(location != "R100" | stand.age != "3") %>% 
+  filter(stand.age=="3") %>% 
+  ggplot(aes(cumn/3,yield.cum/3)) +
+  geom_point() +
+  geom_smooth(
+    se=F,
+    method = "lm",
+    formula = y~poly(x,2)
+  ) +
+  labs(
+    x="N rate (kg N ha)",
+    y="Yield (kg ha)"
+  )
 ```
 
-Look at timing...
+We reject the Ho that N rate does not impact yield
+
+Quadratic model provides the best fit
 
 ```{r}
 dat %>% 
@@ -483,12 +315,9 @@ dat %>%
   anova()
 ```
 
-Now that I'm modeling quadratically, we can reject the Ho there is no relationship between nitrogen rate and yield, but we cannot reject Ho that timing doesn't matter
+We fail to reject the Ho that timing does not impact yield
 
-
-
-
-### mixed effect model
+### quadratic linear mixed effect model
 
 Here we have our fixed effect of cumulative N, timing and a random effect of block. Since we only have two sites, location is treated as a fixed effect. 
 
@@ -507,7 +336,7 @@ dat %>%
   car::Anova()
 ```
 
-The best model I can create (lowest AIC) finds a difference in cumulative yield by location, but not an effect of nrate, timing or an interaction.
+We fail to reject Ho that yield does not differ N rate or timing
 
 ```{r}
 dat %>% 
@@ -523,75 +352,31 @@ dat %>%
     # aes(col=location),
     se=F,
     method="lm",
-    formula = y~y)
+    formula = y~y) +
+  labs(
+    x="N applied (kg N ha)",
+    y="Yield (kg ha)"
+  )
 ```
 
-TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years. I would say our data suggests a quadratic or logarithmic relationship at around 60 kg N ha per year does not result in noticeably greater grain yields.
+TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years when modelled as a fixed effect model. Personally, I would say our data suggests at around 60 kg N ha per year results in best grain yields and then adding more N has no effect. When modeled as a simple quadratic linear model, we can make this conclusion, but when modelled as a mixed effect model we cannot. 
 
 ## Yearly performance
 
-Now we can use our full dataset with the exception of R100 in third year. 
+We are using all site years except third stand age of R100 due to high lodging. 
 
-How does N timing and N amount correlate with yield?
+How does N timing and N amount correlate with yield in a given year?
 
-```{r}
+```{r, include=F}
 dat %>% 
   filter(location != "R100" | stand.age != "3") %>% 
   ggplot(aes(yield)) +
   stat_bin()
 ```
 
-### N rate as quadratic or linear?
-
-```{r}
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>% 
-  ggplot(aes(n.total,yield)) +
-  geom_point() +
-  geom_smooth(
-    se=T,
-    aes(color = "loess")
-  ) +
-  geom_smooth(
-    se=T,
-    aes(color = "quadratic"),
-    method = "lm",
-    formula = y~poly(x,2)
-  ) + 
-  geom_smooth(
-    se=T,
-    aes(color = "linear"),
-    method = "lm"
-  )
-```
-
-yield response to N appears to be more quadratic than linear, improper estimation happens at very high and low n rates. let's test a quadratic vs linaer model
-
-```{r, eval=F}
-dat %>%
-  filter(location != "R100" | stand.age != "3") %>%
-  lmer(formula = yield ~ n.total + (1 | block), .) %>%
-  summary()
-# alright we can lose the block effect, it adds nothing
-
-dat %>%
-  filter(location != "R100" | stand.age != "3") %>%
-  lm(formula = yield ~ n.total, .) %>%
-  AIC()
-  
-dat %>%
-  filter(location != "R100" | stand.age != "3") %>%
-  lm(formula = yield ~ poly(n.total,2), .) %>%
-  AIC()
-
-# quadratic is slightly better
-```
-
-Quadratic is better!
-
 ### full model, site-years as random
 
-```{r}
+```{r, include=F}
 dat %>% 
   filter(location != "R100" | stand.age != "3") %>%
   group_by(location,year) %>%
@@ -614,6 +399,10 @@ dat %>%
 
 ```
 
+We reject Ho that stand.age, timing and nitrogen rate do not impact yield 
+
+Here we have subsetted data so we have removed instances where a timing was Fall but no fall N was applied. We only start doing this here because this is the first time we are looking at timing across years at each year. 
+
 #### nitrogen rate on yield
 
 ```{r nrate effect}
@@ -634,7 +423,7 @@ dat %>%
   )
 ```
 
-There is an effect of nitrogen rate on yield and it is quadratic. 
+We previously learned the relationship between N rate and yield is best modelled quadratically and then we rejected Ho that nitrogen rate does not impact yield. Here we are visualizing the subsetted data used in the model. 
 
 #### timing on yield
 
@@ -679,69 +468,19 @@ dat %>%
   )
 ```
 
-We can reject the Ho that yields were the same regardless of timing. Applying in the fall was estimated to have a higher grain yield than when split in the spring, summer or applied alone in the spring. 
+We reject the Ho that yields were the same regardless of timing. Applying in the fall was estimated to have a higher grain yield than when split in the spring, summer or applied alone in the spring. 
 
-#### stand age on yield
-
-```{r stand age effect}
-dat %>% 
-# removing yield data from lodged plots
-  filter(location != "R100" | stand.age != "3") %>%
-# removing instances where there was a Fall timing but no N was applied
-  filter(timing !="Fall" | fall != 0) %>% 
-  lmer(
-# changing random effect structure due to singular fit
-    yield~poly(n.total,2)+timing+stand.age + (1|location/year/block),.
-  ) %>% 
-  # summary()
-  # car::Anova()
-  emmeans(~stand.age) %>% 
-  cld()
-```
-
-We can reject Ho that yields were similar regardless of stand.age but cannot make pairwise comparisons among timing levels at an alpha 0.05 and a tukey adjustment. 
+Since the dataset is unbalanced, we reported estimated marginal means, 95% confidence intervals and the number of data points within each timing used in the model.  
 
 ### full model, location as fixed effect
 
-```{r}
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>%
-# removing instances where there was a Fall timing but no N was applied
-  filter(timing !="Fall" | fall != 0) %>%
-  lmer(
-    yield~poly(n.total,2)*timing*stand.age*location + (1|block),.
-  ) %>% 
-  # summary()
-  car::Anova()
-  
-# this is a lot of model for a small dataset, dropping 151 columns!
-# need to take out the junk and rerun a smaller model
+We have 4 locations and there is a rationale to model them as fixed effects. This puts a lot of stress on our model by cutting it up by n rate, timing, stand age and location. We end up making a lot of meaningless comparisons and need to reduce the comparisons we make in order to prevent a rank deficient model.
 
-# block explains a little
+We ran a full factorial model, then would remove interaction terms that were insignificant and rerun the model. 
 
-# stand.age interacts with timing, location, and nrate
-
-```
+we removed R100 from the dataset (site years = 8) because it only had one stand age after we removed third stand age for lodging and when stand.age is modelled as a fixed effect the R100 data doesn't provide any utility to testing those hypotheses
 
 ```{r}
-# let's take out non-significant interactions and calm down this model
-
-dat %>% 
-  filter(location != "R100" | stand.age != "3") %>%
-# removing instances where there was a Fall timing but no N was applied
-  filter(timing !="Fall" | fall != 0) %>%
-  lmer(
-    yield~poly(n.total,2)+timing+stand.age+
-      location+stand.age:location +
-      (1|block),.
-  ) %>% 
-  # car::Anova()
-  emmip(location~stand.age)
-
-# So here is the problem, Staples and V17 are only datasets that have data across the three years. R100 can't say anything after we take off the third year. If we are treating location and stand age as fixed effects, we just need more data across the levels of stand age  
-
-# Rerunning full model with interactions but filtering out R100
-
 dat %>% 
   filter(location != "R100") %>%
 # removing instances where there was a Fall timing but no N was applied
@@ -766,73 +505,14 @@ dat %>%
       location+stand.age:location +
       (1|block),.
   ) %>% 
-  # car::Anova()
-  emmip(location~stand.age) +
-  labs(
-    caption = "R100 only has one site-year of good yield data so it's filtered out. change in yield over stand.age was different, Staples when down in year 2 and V17 went up. Will need to seperate by location"
-  )
-
+  car::Anova()
 ```
 
-
-Let's try looking at each stand.age
+Change in yield over stand.age was different, Staples when down in year 2 and V17 went up. We will need to separate by location or stand age. 
 
 #### slice by stand age
 
-```{r}
-# stand age 1
-
-dat %>% 
-  filter(location != "R100") %>% 
-# removing instances where there was a Fall timing but no N was applied
-  filter(timing !="Fall" | fall != 0) %>%
-  filter(stand.age == "1") %>% 
-  lmer(
-    yield~poly(n.total,2)*timing*location + (1|block),.
-  ) %>% 
-  # summary()
-  car::Anova()
-
-```
-
-Main effect of location
-
-```{r}
-# stand age 2
-
-dat %>% 
-  filter(location != "R100") %>%
-# removing instances where there was a Fall timing but no N was applied
-  filter(timing !="Fall" | fall != 0) %>%
-  filter(stand.age == "2") %>% 
-  lmer(
-    yield~poly(n.total,2)*timing*location + (1|block),.
-  ) %>% 
-  # summary()
-  car::Anova()
-
-```
-
-Main effect of nrate timing and location
-
-```{r}
-# stand age 3
-
-dat %>% 
-  filter(location != "R100" ) %>%
-# removing instances where there was a Fall timing but no N was applied
-  filter(timing !="Fall" | fall != 0) %>%
-  filter(stand.age == "3") %>% 
-  lmer(
-    yield~poly(n.total,2)*timing*location + (1|block),.
-  ) %>% 
-  # summary()
-  car::Anova()
-```
-
-interaction between timing:location
-
-##### stand age 2 with no interactions
+Slicing by second stand age yielded the only interesting results. 
 
 ```{r}
 dat %>% 
@@ -883,6 +563,8 @@ dat %>%
   knitr::kable(
     caption = "Estimated marginal means across N rate timings from a mixed effect model of yield in second year kernza stands as a function of nitrogen rate, timing and location. No interactions were detected among nitrogen rate, timing and location, but main effects were detected from timing")
 ```
+
+TAKEAWAY: across 8 site-years, second year yields were higher when N was applied in the fall versus in the spring or a spring summer split. They were also higher in the Fall summer split compared with the spring summer split
 
 #### slice by site
 

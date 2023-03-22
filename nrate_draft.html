@@ -89,799 +89,11 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="methods" class="level1">
 <h1>Methods</h1>
+<p>Our dataset is unbalanced because design was not consistent across sites. First we try to see a consistent response across site-years, then we may analyze each site seperately.</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="table table-sm table-striped">
-<caption>The n-rate timing dataset</caption>
-<thead>
-<tr class="header">
-<th style="text-align: right;">n.total</th>
-<th style="text-align: left;">timing</th>
-<th style="text-align: left;">stand.age</th>
-<th style="text-align: left;">location</th>
-<th style="text-align: right;">n</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">NDSU</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">NDSU</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Control</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">0.0</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">22.4</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">22.4</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">22.4</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">22.4</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">27.5</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">NDSU</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">27.5</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">NDSU</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">44.8</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">44.8</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">44.8</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">44.8</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">44.8</td>
-<td style="text-align: left;">Fall-Spring Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">55.0</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">NDSU</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">55.0</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">NDSU</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">67.2</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">82.5</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">NDSU</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">82.5</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">NDSU</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall-Spring Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Fall-Spring Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">V17</td>
-<td style="text-align: right;">4</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">89.6</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">112.0</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Fall</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">134.4</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Fall-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">1</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">2</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="odd">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">R100</td>
-<td style="text-align: right;">3</td>
-</tr>
-<tr class="even">
-<td style="text-align: right;">156.8</td>
-<td style="text-align: left;">Spring-Summer Split</td>
-<td style="text-align: left;">3</td>
-<td style="text-align: left;">Staples</td>
-<td style="text-align: right;">3</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<p>This is an unbalanced dataset because design was not consistent across sites. One solution is to analyze each site separately, but first we try to see if there is a consistent response across site-years.</p>
-<div class="cell">
-<div class="cell-output-display">
-<table class="table table-sm table-striped">
-<caption>we have 10 site-years, more than enough to be a random effect</caption>
+<caption>Ee have 10 site-years, more than enough to be a random effect</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">location</th>
@@ -949,75 +161,26 @@ ul.task-list li input[type="checkbox"] {
 <h1>Lodging</h1>
 <p>Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging.</p>
 <p>In general, if lodging is above 6, the yield data is questionable.</p>
+<p>Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate.</p>
+<section id="r100" class="level2">
+<h2 class="anchored" data-anchor-id="r100">R100</h2>
+<p>R100 only had N applied in the second and third year.</p>
+<p>Lodging only occurred in the stands third year of production.</p>
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="nrate_draft_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate.</p>
-<section id="r100" class="level2">
-<h2 class="anchored" data-anchor-id="r100">R100</h2>
-<p>R100 only had N applied in the second and third year.</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>Lodging only occurred in the stands third year of production.</p>
+<p>We observe a general increase in lodging as nitrogen rate increases. We fit a logistic curve since lodging cannot be greater than 10 and we expect as we increase N rate more lodging will get closer to 10. This curve is obviously not perfect.</p>
+<!-- Looking at treatment timing with N rate, I see a bit more red dots (fall) with lower lodging, but it's messy. Sprint split has some of the most lodging, but also an outlier at near 150 kg N ha where there was no lodging -->
 <div class="cell">
 <div class="cell-output-display">
 <p><img src="nrate_draft_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>We observe a general increase in lodging as nitrogen rate increases. We fit a logistic curve since lodging cannot be greater than 10 and we expect as we increase N rate more lodging will get closer to 10. This curve is obviously not perfect.</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>Looking at treatment timing with N rate, I see a bit more red dots (fall) with lower lodging, but it’s messy. Sprint split has some of the most lodging, but also an outlier at near 150 kg N ha where there was no lodging</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
 <p>Here we are fitting a logistic regression with a y intercept of zero because we assume at 0N there is no lodging (as shown with control plots) and that lodging score will increase as nitrogen rate increases but that lodging will never exceed 10. The takeaway from this figure is that there is no lodging at 0N and that you see less lodging when you apply in fall and more when you apply in spring and summer.</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>This is a funkier way to look at this data based on how I organized the data and it is confusing so may not be worth trying to interpret.. Every lodging observation has a corresponding amount of N applied in fall, spring and summer. All of the spring plots, for example, also are plots where no N was applied in the fall. So within each of the timings (fall, spring or summer), the entire lodging dataset is represented. This also means the lodging dataset is duplicated 3 times when we do this. I am not sure if this is ok, but this is how I think this can be interpreted.</p>
-<p>With more N there is more lodging, but we also see more lodging when the N is applied closer to harvest.</p>
-<table class="table">
-<caption>Linear regression parameters for lodging response to nitrogen timing</caption>
-<thead>
-<tr class="header">
-<th>Timing of N</th>
-<th>m (lodging ~ m*nrate + b)</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>fall</td>
-<td>-0.002</td>
-</tr>
-<tr class="even">
-<td>spring</td>
-<td>0.025</td>
-</tr>
-<tr class="odd">
-<td>summer</td>
-<td>0.041</td>
-</tr>
-</tbody>
-</table>
-<div class="cell">
-
-</div>
 <section id="analysis" class="level3">
 <h3 class="anchored" data-anchor-id="analysis">Analysis</h3>
-<p>When we fit logistic curves, it looked like the lodging was lowest in the control and fall plots. Let’s see if this is true.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Variance Table
@@ -1032,85 +195,39 @@ Residuals               45  326.21    7.25
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-<p>We cannot reject Ho that timing has an impact on lodging.</p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code> timing              emmean    SE df lower.CL upper.CL .group
- Control              0.333 1.559 49    -2.80     3.47  1    
- Fall                 6.500 0.779 49     4.93     8.07   2   
- Fall-Summer Split    8.083 0.779 49     6.52     9.65   2   
- Spring-Summer Split  8.167 0.779 49     6.60     9.73   2   
- Spring               8.267 0.697 49     6.87     9.67   2   
-
-Confidence level used: 0.95 
-P value adjustment: tukey method for comparing a family of 5 estimates 
-significance level used: alpha = 0.05 
-NOTE: If two or more means share the same grouping symbol,
-      then we cannot show them to be different.
-      But we also did not show them to be the same. </code></pre>
-</div>
-</div>
-<p>Obviously, if we look just at timing then the control plots have less lodging than the rest of the plots receiving N. Takeaway here is that lodging is correlated with increases in N, but we cannot reject the Ho that timing does not have an impact. It looks like fall applied N had less impact on lodging, but we cannot reject Ho.</p>
-<p>Based on analysis, we are better off just fitting a general curve to lodging by nrate, we will need to do more analysis to find the best curve with the most fitting relationship.</p>
+<p>We reject Ho that the rate of nitrogen does not impact lodging.</p>
+<p>We fail to reject Ho that timing has an impact on lodging.</p>
 </section>
-</section>
-<section id="v17" class="level2">
-<h2 class="anchored" data-anchor-id="v17">V17</h2>
-<p>Lodging is below threshold of 6, meaning we think this yield data is still good.</p>
-<p>We are just looking to see if similar trends to R100 where applying more N leads to more lodging and where applying N closer to harvest correlates with more lodging</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>Lodging only occurred in the stands second year of production. This could’ve just been a harvest timing issue, but harvest was 3Aug so unlikely.</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>Not a strong relationship between N rate and lodging. There is a good amount of lodging in control. Nothing to see here.</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
 </section>
 </section>
 <section id="plant-height" class="level1">
 <h1>Plant height</h1>
 <p>Plant height is also not a measurement of primary interest.</p>
-<p>We are curious to what extent plant height relates to lodging in R100</p>
-<p>We are curious more broadly how plant height was distributed across experiments.</p>
+<p>To what extent does plant height relate to lodging in R100?</p>
 <section id="r100-year-3" class="level2">
 <h2 class="anchored" data-anchor-id="r100-year-3">R100 year 3</h2>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>We observe an overall trend of decreasing plant height as N rate increases.</p>
+<p>We observe an overall trend of decreasing plant height as N rate increases, modeled best quadratically.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Variance Table
 
 Response: height
-          Df   Sum Sq  Mean Sq F value   Pr(&gt;F)   
-n.total    1 0.049647 0.049647 10.7931 0.001908 **
-timing     4 0.037013 0.009253  2.0116 0.107787   
-Residuals 48 0.220797 0.004600                    
+                 Df   Sum Sq   Mean Sq F value   Pr(&gt;F)   
+poly(n.total, 2)  2 0.050934 0.0254669  5.4217 0.007609 **
+timing            4 0.035753 0.0089383  1.9029 0.125627   
+Residuals        47 0.220770 0.0046972                    
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-<p>Cannot reject Ho that timing has no effect on the effect of n rate on plant height</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>We have learned from R100 in it’s third stand age that as nrate increases, there is an increase in lodging and a decrease in plant height.</p>
-<p>Let’s see if they’re correlated</p>
+<p>We reject Ho that nrate does not impact height</p>
+<p>We fail to reject Ho that timing has no effect on plant height</p>
+<p>We have learned from R100 in it’s third stand age that as nrate increases, there is an increase in lodging and a decrease in plant height. To what extent are they correlated?</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>           lodging     height
@@ -1120,56 +237,37 @@ height  -0.4993655  1.0000000</code></pre>
 </div>
 <p>We observe a pearson correlation coefficient of -0.5 between height and lodging. This is considered between a moderate and strong correlation.</p>
 </section>
-<section id="v17-1" class="level2">
-<h2 class="anchored" data-anchor-id="v17-1">V17</h2>
-<p>We only have height data for V17 in stand ages 2 and 3 besides the R100 in stand age 3.</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-20-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>alright, we only have two sites with plant height data</p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Variance Table
-
-Response: height
-          Df   Sum Sq  Mean Sq F value Pr(&gt;F)
-n.total    1 0.000056 0.000056  0.0092  0.924
-Residuals 30 0.181829 0.006061               </code></pre>
-</div>
-</div>
-<p>We cannot reject Ho that plant height is the same across n rates</p>
-</section>
 </section>
 <section id="yield" class="level1">
 <h1>Yield</h1>
 <section id="cumulative" class="level2">
 <h2 class="anchored" data-anchor-id="cumulative">cumulative</h2>
-<p>Cumulative yield of kernza stands after 3 years of N fertilizer. Only V17 and Staples meet this criteria. One advantage of this is that we do not have to look at stand.age since we are looking across all three years.</p>
+<p>Cumulative yield of kernza stands after 3 years of N fertilizer. We are subsetting dataset, Only V17 and Staples meet this criteria (6 site years). We sum across stand.age to create a cumulative yield and a cumulative amount of N applied, then divide both values by 3 to get a yearly yield~N response.</p>
+<section id="quadratic-linear-model-yield-response-to-n" class="level3">
+<h3 class="anchored" data-anchor-id="quadratic-linear-model-yield-response-to-n">quadratic linear model, yield response to N</h3>
 <div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-22-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<section id="quadratic-model" class="level3">
-<h3 class="anchored" data-anchor-id="quadratic-model">quadratic model</h3>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-23-1.png" class="img-fluid" width="672"></p>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1020.782</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1000.713</code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 1020.782</code></pre>
-</div>
-</div>
-<p>Ok, so there is an effect of cumulative N when modelled quadratically versus linear</p>
-<div class="cell">
+<pre><code>Analysis of Variance Table
 
+Response: yield.cum
+              Df  Sum Sq Mean Sq F value    Pr(&gt;F)    
+poly(cumn, 2)  2 2696949 1348475  12.438 2.607e-05 ***
+Residuals     66 7155387  108415                      
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
-<p>Look at timing…</p>
+<div class="cell-output-display">
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>We reject the Ho that N rate does not impact yield</p>
+<p>Quadratic model provides the best fit</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Variance Table
@@ -1187,10 +285,10 @@ Residuals              28 2341662   83631
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-<p>Now that I’m modeling quadratically, we can reject the Ho there is no relationship between nitrogen rate and yield, but we cannot reject Ho that timing doesn’t matter</p>
+<p>We fail to reject the Ho that timing does not impact yield</p>
 </section>
-<section id="mixed-effect-model" class="level3">
-<h3 class="anchored" data-anchor-id="mixed-effect-model">mixed effect model</h3>
+<section id="quadratic-linear-mixed-effect-model" class="level3">
+<h3 class="anchored" data-anchor-id="quadratic-linear-mixed-effect-model">quadratic linear mixed effect model</h3>
 <p>Here we have our fixed effect of cumulative N, timing and a random effect of block. Since we only have two sites, location is treated as a fixed effect.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -1209,71 +307,23 @@ poly(cumn, 2):timing:location          0
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-<p>The best model I can create (lowest AIC) finds a difference in cumulative yield by location, but not an effect of nrate, timing or an interaction.</p>
+<p>We fail to reject Ho that yield does not differ N rate or timing</p>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-27-1.png" class="img-fluid" width="672"></p>
+<p><img src="nrate_draft_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years. I would say our data suggests a quadratic or logarithmic relationship at around 60 kg N ha per year does not result in noticeably greater grain yields.</p>
+<p>TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years when modelled as a fixed effect model. Personally, I would say our data suggests at around 60 kg N ha per year results in best grain yields and then adding more N has no effect. When modeled as a simple quadratic linear model, we can make this conclusion, but when modelled as a mixed effect model we cannot.</p>
 </section>
 </section>
 <section id="yearly-performance" class="level2">
 <h2 class="anchored" data-anchor-id="yearly-performance">Yearly performance</h2>
-<p>Now we can use our full dataset with the exception of R100 in third year.</p>
-<p>How does N timing and N amount correlate with yield?</p>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-28-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<section id="n-rate-as-quadratic-or-linear" class="level3">
-<h3 class="anchored" data-anchor-id="n-rate-as-quadratic-or-linear">N rate as quadratic or linear?</h3>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-29-1.png" class="img-fluid" width="672"></p>
-</div>
-</div>
-<p>yield response to N appears to be more quadratic than linear, improper estimation happens at very high and low n rates. let’s test a quadratic vs linaer model</p>
-<div class="cell">
-
-</div>
-<p>Quadratic is better!</p>
-</section>
+<p>We are using all site years except third stand age of R100 due to high lodging.</p>
+<p>How does N timing and N amount correlate with yield in a given year?</p>
 <section id="full-model-site-years-as-random" class="level3">
 <h3 class="anchored" data-anchor-id="full-model-site-years-as-random">full model, site-years as random</h3>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 9 × 3
-# Groups:   location [4]
-  location  year     n
-  &lt;fct&gt;    &lt;int&gt; &lt;int&gt;
-1 NDSU      2020    16
-2 NDSU      2021    16
-3 R100      2018    54
-4 Staples   2018    54
-5 Staples   2019    54
-6 Staples   2020    54
-7 V17       2019    16
-8 V17       2020    16
-9 V17       2021    16</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
-
-Response: yield
-                                    Chisq Df Pr(&gt;Chisq)    
-poly(n.total, 2)                  11.3441  2  0.0034408 ** 
-timing                            32.6082  5  4.501e-06 ***
-stand.age                         15.4806  2  0.0004349 ***
-poly(n.total, 2):timing            4.7840  7  0.6863047    
-poly(n.total, 2):stand.age         4.1964  4  0.3800799    
-timing:stand.age                   5.3474  8  0.7198837    
-poly(n.total, 2):timing:stand.age  3.3978 10  0.9704556    
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-</div>
+<p>We reject Ho that stand.age, timing and nitrogen rate do not impact yield</p>
+<p>Here we have subsetted data so we have removed instances where a timing was Fall but no fall N was applied. We only start doing this here because this is the first time we are looking at timing across years at each year.</p>
 <section id="nitrogen-rate-on-yield" class="level4">
 <h4 class="anchored" data-anchor-id="nitrogen-rate-on-yield">nitrogen rate on yield</h4>
 <div class="cell">
@@ -1281,7 +331,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p><img src="nrate_draft_files/figure-html/nrate%20effect-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>There is an effect of nitrogen rate on yield and it is quadratic.</p>
+<p>We previously learned the relationship between N rate and yield is best modelled quadratically and then we rejected Ho that nitrogen rate does not impact yield. Here we are visualizing the subsetted data used in the model.</p>
 </section>
 <section id="timing-on-yield" class="level4">
 <h4 class="anchored" data-anchor-id="timing-on-yield">timing on yield</h4>
@@ -1338,61 +388,16 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </table>
 </div>
 </div>
-<p>We can reject the Ho that yields were the same regardless of timing. Applying in the fall was estimated to have a higher grain yield than when split in the spring, summer or applied alone in the spring.</p>
-</section>
-<section id="stand-age-on-yield" class="level4">
-<h4 class="anchored" data-anchor-id="stand-age-on-yield">stand age on yield</h4>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code> stand.age emmean  SE   df lower.CL upper.CL .group
- 3            218 159 5.82     -173      609  1    
- 2            650 125 4.16      309      991  1    
- 1            666 141 5.12      307     1025  1    
-
-Results are averaged over the levels of: timing 
-Degrees-of-freedom method: kenward-roger 
-Confidence level used: 0.95 
-P value adjustment: tukey method for comparing a family of 3 estimates 
-significance level used: alpha = 0.05 
-NOTE: If two or more means share the same grouping symbol,
-      then we cannot show them to be different.
-      But we also did not show them to be the same. </code></pre>
-</div>
-</div>
-<p>We can reject Ho that yields were similar regardless of stand.age but cannot make pairwise comparisons among timing levels at an alpha 0.05 and a tukey adjustment.</p>
+<p>We reject the Ho that yields were the same regardless of timing. Applying in the fall was estimated to have a higher grain yield than when split in the spring, summer or applied alone in the spring.</p>
+<p>Since the dataset is unbalanced, we reported estimated marginal means, 95% confidence intervals and the number of data points within each timing used in the model.</p>
 </section>
 </section>
 <section id="full-model-location-as-fixed-effect" class="level3">
 <h3 class="anchored" data-anchor-id="full-model-location-as-fixed-effect">full model, location as fixed effect</h3>
+<p>We have 4 locations and there is a rationale to model them as fixed effects. This puts a lot of stress on our model by cutting it up by n rate, timing, stand age and location. We end up making a lot of meaningless comparisons and need to reduce the comparisons we make in order to prevent a rank deficient model.</p>
+<p>We ran a full factorial model, then would remove interaction terms that were insignificant and rerun the model.</p>
+<p>we removed R100 from the dataset (site years = 8) because it only had one stand age after we removed third stand age for lodging and when stand.age is modelled as a fixed effect the R100 data doesn’t provide any utility to testing those hypotheses</p>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
-
-Response: yield
-                                              Chisq Df Pr(&gt;Chisq)    
-poly(n.total, 2)                             8.1275  2    0.01718 *  
-timing                                      28.2269  5  3.286e-05 ***
-stand.age                                  360.7091  2  &lt; 2.2e-16 ***
-location                                   146.7114  3  &lt; 2.2e-16 ***
-poly(n.total, 2):timing                      4.8674  7    0.67614    
-poly(n.total, 2):stand.age                   6.4476  4    0.16812    
-timing:stand.age                            12.5923  8    0.12667    
-poly(n.total, 2):location                    8.2761  5    0.14166    
-timing:location                              9.4765  5    0.09150 .  
-stand.age:location                          33.7429  3  2.245e-07 ***
-poly(n.total, 2):timing:stand.age            1.7945 10    0.99769    
-poly(n.total, 2):timing:location             3.5339  4    0.47274    
-poly(n.total, 2):stand.age:location          1.7936  4    0.77365    
-timing:stand.age:location                    0.3329  2    0.84667    
-poly(n.total, 2):timing:stand.age:location           0               
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-33-1.png" class="img-fluid" width="672"></p>
-</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
 
@@ -1416,69 +421,24 @@ poly(n.total, 2):timing:stand.age:location           0
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
-<div class="cell-output-display">
-<p><img src="nrate_draft_files/figure-html/unnamed-chunk-33-2.png" class="img-fluid" width="672"></p>
+<div class="cell-output cell-output-stdout">
+<pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
+
+Response: yield
+                     Chisq Df Pr(&gt;Chisq)    
+poly(n.total, 2)    17.991  2   0.000124 ***
+timing              32.370  5  5.018e-06 ***
+stand.age          390.718  2  &lt; 2.2e-16 ***
+location           163.091  2  &lt; 2.2e-16 ***
+stand.age:location  76.858  3  &lt; 2.2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-<p>Let’s try looking at each stand.age</p>
+<p>Change in yield over stand.age was different, Staples when down in year 2 and V17 went up. We will need to separate by location or stand age.</p>
 <section id="slice-by-stand-age" class="level4">
 <h4 class="anchored" data-anchor-id="slice-by-stand-age">slice by stand age</h4>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
-
-Response: yield
-                                   Chisq Df Pr(&gt;Chisq)    
-poly(n.total, 2)                  4.3109  2     0.1159    
-timing                            5.3330  4     0.2548    
-location                         68.9168  2  1.084e-15 ***
-poly(n.total, 2):timing           0.8841  4     0.9268    
-poly(n.total, 2):location         1.4052  3     0.7043    
-timing:location                   0.1639  1     0.6855    
-poly(n.total, 2):timing:location          0               
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-</div>
-<p>Main effect of location</p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
-
-Response: yield
-                                    Chisq Df Pr(&gt;Chisq)    
-poly(n.total, 2)                  14.3748  2   0.000756 ***
-timing                            30.0587  5  1.436e-05 ***
-location                         118.6736  2  &lt; 2.2e-16 ***
-poly(n.total, 2):timing            4.1718  6   0.653435    
-poly(n.total, 2):location          2.9520  3   0.399092    
-timing:location                    0.5350  2   0.765288    
-poly(n.total, 2):timing:location           0               
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-</div>
-<p>Main effect of nrate timing and location</p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
-
-Response: yield
-                                   Chisq Df Pr(&gt;Chisq)    
-poly(n.total, 2)                  0.1692  2   0.918900    
-timing                           32.0791  5  5.731e-06 ***
-location                          9.8067  1   0.001739 ** 
-poly(n.total, 2):timing           2.6794  6   0.847872    
-poly(n.total, 2):location         1.9793  1   0.159469    
-timing:location                   4.4652  1   0.034592 *  
-poly(n.total, 2):timing:location          0               
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-</div>
-</div>
-<p>interaction between timing:location</p>
-<section id="stand-age-2-with-no-interactions" class="level5">
-<h5 class="anchored" data-anchor-id="stand-age-2-with-no-interactions">stand age 2 with no interactions</h5>
+<p>Slicing by second stand age yielded the only interesting results.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)
@@ -1547,7 +507,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </table>
 </div>
 </div>
-</section>
+<p>TAKEAWAY: across 8 site-years, second year yields were higher when N was applied in the fall versus in the spring or a spring summer split. They were also higher in the Fall summer split compared with the spring summer split</p>
 </section>
 <section id="slice-by-site" class="level4">
 <h4 class="anchored" data-anchor-id="slice-by-site">slice by site</h4>
