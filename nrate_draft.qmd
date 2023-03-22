@@ -22,10 +22,15 @@ editor_options:
 
 - We observed serious lodging in only 1 site-year, and observed lower lodging when N was applied at lower rates and further away from harvest (i.e. fall vs. spring or summer). Lodging was negatively correlated with plant height ($r=-0.5$)
 
-- Of sites where we tracked yield over three years, we failed to reject the Ho that N rate and timing had no impact on the yield of the stand.
+- For both cumulative and yearly yield response to nitrogen rate, a quadratic relationship fit the data best, suggesting there is an optimal N rate.
 
+- Combined across all site-years, yields were higher when N was applied in the fall versus in the spring or when split with a summer application. 
 
+- Of sites where we tracked yield over three years, we failed to reject the Ho that N rate and timing had no impact on the yield of the stand. 
 
+- The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More research is required to capture the variability of yield response to N rate and timing. 
+
+- The optimal fertility program is likely site specific. 
 
 # Data
 
