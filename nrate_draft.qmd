@@ -25,15 +25,19 @@ bibliography: bib_rPackages.bib
 
 -   We observed serious lodging in only 1 site-year, and observed lower lodging when N was applied at lower rates and further away from harvest (i.e. fall vs. spring or summer). Lodging was negatively correlated with plant height ($r=-0.5$)
 
--   For both cumulative and yearly yield response to nitrogen rate, a quadratic relationship fit the data best, suggesting there is an optimal N rate.
+-   For both cumulative and yearly yield response to nitrogen rate, a quadratic relationship fit the data best, suggesting there may be an optimal N rate.
 
 -   Combined across all site-years, yields were higher when N was applied in the fall versus in the spring or when split with a summer application.
 
--   Of sites where we tracked yield over three years, we failed to reject the Ho that yields differed among stands that recieved different N rates and timings.
+-   Of sites where we tracked yield over three years, we failed to reject the Ho that cumulative yields differed among stands that received different N rates and timings.
 
 -   The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More field trials are required to capture the variability of yield response to N rate and timing.
 
--   The optimal fertility program is likely site specific.
+-   The optimal fertility program is likely site specific and possibly year specific.
+
+    -   Some sites like Staples responded strongly to N, where other sites showed no response (NDSU, R100).
+
+    -   In the second year, fertilizing in the fall was better than fertilizing in the spring, but there was no consistent effect in the first or third year.
 
 <!-- # Data -->
 
@@ -113,7 +117,7 @@ Table for site conditions, weather by month
 
 Table for GPS points, soil type, row spacing, planting date and rate
 
-Table for 
+Table for
 
 #### Staples
 
@@ -122,7 +126,6 @@ Table for
 #### R100
 
 #### NDSU
-
 
 ### Statistical analysis
 
@@ -134,24 +137,19 @@ Where linear models were fit, response variables were normally distributed.
 
 We fit linear models and linear mixed effect models to subsets of data based on the hypothesis being tested [@lme4].
 
-If a model was comparing the relationship between two continuous variables, we first fit models to determine which function best fit the $y~x$ relationship. We would rely on the locally estimated regression to inform which linear regression candidates and the best fits were simply $y~x$ and $y~x+x^2$ [@tidyverse]. Models were ultimately selected based on AIC. 
-
+If a model was comparing the relationship between two continuous variables, we first fit models to determine which function best fit the $y~x$ relationship. We would rely on the locally estimated regression to inform which linear regression candidates and the best fits were simply $y~x$ and $y~x+x^2$ [@tidyverse]. Models were ultimately selected based on AIC.
 
 $$ 
 Y = nRate * timing * standAge * location + (1|block)
-$$
-A global model for a data subset of fewer than 4 locations in @lme4 syntax where * specifies a full factorial combination and (1|block) specifies a separate y-intercept for each block. We are modeling nRate as a first order polynomial for simplicity, but often the model was improved when nRate was a second order polynomial.
+$$ A global model for a data subset of fewer than 4 locations in @lme4 syntax where \* specifies a full factorial combination and (1\|block) specifies a separate y-intercept for each block. We are modeling nRate as a first order polynomial for simplicity, but often the model was improved when nRate was a second order polynomial.
 
 $$
 Y = nRate * timing * standAge + (1|location/year/block)
-$$
-A global model for the dataset spanning 4 years and 4 locations in lme4 syntax [@lme4]. The (1|location/year/block) specifies the nesting random effects where block is within year and within location. We are modeling nRate as a first order polynomial for simplicity, but often the model was improved when nRate was a second order polynomial.
+$$ A global model for the dataset spanning 4 years and 4 locations in lme4 syntax [@lme4]. The (1\|location/year/block) specifies the nesting random effects where block is within year and within location. We are modeling nRate as a first order polynomial for simplicity, but often the model was improved when nRate was a second order polynomial.
 
-We would first fit global models which would contain a full factorial combination of all fixed effects. This model would often be overfit and require the removal of parameters. If the fit was singular, we would remove random effects that explained zero variance, sometimes shifting to a simple linear model. If the model was rank deficient, we would test whether we could reject the Ho that the coefficient of a given parameter was zero using 'Anova' [@car]. If we failed to reject the Ho, we would remove those parameters from the model and rerun the model. 
+We would first fit global models which would contain a full factorial combination of all fixed effects. This model would often be overfit and require the removal of parameters. If the fit was singular, we would remove random effects that explained zero variance, sometimes shifting to a simple linear model. If the model was rank deficient, we would test whether we could reject the Ho that the coefficient of a given parameter was zero using 'Anova' [@car]. If we failed to reject the Ho, we would remove those parameters from the model and rerun the model.
 
 After non-significant parameters were removed from the global models, coefficients were tested again using 'Anova' [@car]. Estimated marginal means were calculated across groups where there was no interaction [@emmeans]. We calculated 95% confidence intervals and assigned groups to different levels of the fixed effect using an alpha of 0.05 and a tukey adjustment [@multcomp].
-
-
 
 # Lodging
 
@@ -573,7 +571,7 @@ Change in yield over stand.age was different, Staples when down in year 2 and V1
 
 #### Slice by stand age
 
-It would be interesting to know if there is an ideal N rate or timing in year 1 and then a different one in year 2 or year 3, but Ho could not be rejected in year 1 and there were location*timing interactions in year 3. 
+It would be interesting to know if there is an ideal N rate or timing in year 1 and then a different one in year 2 or year 3, but Ho could not be rejected in year 1 and there were location\*timing interactions in year 3.
 
 Slicing by second stand age yielded the only interesting results.
 
