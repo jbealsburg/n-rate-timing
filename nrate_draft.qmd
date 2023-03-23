@@ -109,6 +109,21 @@ dat %>%
 
 ### Text - all sites
 
+Table for site conditions, weather by month
+
+Table for GPS points, soil type, row spacing, planting date and rate
+
+Table for 
+
+#### Staples
+
+#### V17
+
+#### R100
+
+#### NDSU
+
+
 ### Statistical analysis
 
 Data was analyzed in R and we intend to provide the code used [@R].
