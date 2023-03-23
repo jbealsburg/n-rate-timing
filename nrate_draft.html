@@ -100,11 +100,15 @@ div.csl-indent {
 <ul>
 <li><p>We applied N at different rates and timings to IWG stands over 10 site-years and collected yield, plant height and lodging data.</p></li>
 <li><p>We observed serious lodging in only 1 site-year, and observed lower lodging when N was applied at lower rates and further away from harvest (i.e.&nbsp;fall vs.&nbsp;spring or summer). Lodging was negatively correlated with plant height (<span class="math inline">\(r=-0.5\)</span>)</p></li>
-<li><p>For both cumulative and yearly yield response to nitrogen rate, a quadratic relationship fit the data best, suggesting there is an optimal N rate.</p></li>
+<li><p>For both cumulative and yearly yield response to nitrogen rate, a quadratic relationship fit the data best, suggesting there may be an optimal N rate.</p></li>
 <li><p>Combined across all site-years, yields were higher when N was applied in the fall versus in the spring or when split with a summer application.</p></li>
-<li><p>Of sites where we tracked yield over three years, we failed to reject the Ho that yields differed among stands that recieved different N rates and timings.</p></li>
+<li><p>Of sites where we tracked yield over three years, we failed to reject the Ho that cumulative yields differed among stands that received different N rates and timings.</p></li>
 <li><p>The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More field trials are required to capture the variability of yield response to N rate and timing.</p></li>
-<li><p>The optimal fertility program is likely site specific.</p></li>
+<li><p>The optimal fertility program is likely site specific and possibly year specific.</p>
+<ul>
+<li><p>Some sites like Staples responded strongly to N, where other sites showed no response (NDSU, R100).</p></li>
+<li><p>In the second year, fertilizing in the fall was better than fertilizing in the spring, but there was no consistent effect in the first or third year.</p></li>
+</ul></li>
 </ul>
 <!-- # Data -->
 <div class="cell">
@@ -182,6 +186,21 @@ div.csl-indent {
 </div>
 <section id="text---all-sites" class="level3">
 <h3 class="anchored" data-anchor-id="text---all-sites">Text - all sites</h3>
+<p>Table for site conditions, weather by month</p>
+<p>Table for GPS points, soil type, row spacing, planting date and rate</p>
+<p>Table for</p>
+<section id="staples" class="level4">
+<h4 class="anchored" data-anchor-id="staples">Staples</h4>
+</section>
+<section id="v17" class="level4">
+<h4 class="anchored" data-anchor-id="v17">V17</h4>
+</section>
+<section id="r100" class="level4">
+<h4 class="anchored" data-anchor-id="r100">R100</h4>
+</section>
+<section id="ndsu" class="level4">
+<h4 class="anchored" data-anchor-id="ndsu">NDSU</h4>
+</section>
 </section>
 <section id="statistical-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="statistical-analysis">Statistical analysis</h3>
@@ -205,8 +224,8 @@ Y = nRate * timing * standAge + (1|location/year/block)
 <p>Understanding lodging is not a primary objective of this experiment, this data was only collected as a covariate if there happened to be a lot of lodging.</p>
 <p>In general, if lodging is above 6, the yield data is questionable.</p>
 <p>Only R100 and V17 showed lodging, and only R100 had severe lodging to the point where the yield data probably is not very accurate.</p>
-<section id="r100" class="level2">
-<h2 class="anchored" data-anchor-id="r100">R100</h2>
+<section id="r100-1" class="level2">
+<h2 class="anchored" data-anchor-id="r100-1">R100</h2>
 <p>R100 only had N applied in the second and third year.</p>
 <p>Lodging only occurred in the stands third year of production.</p>
 <div class="cell">
@@ -559,8 +578,8 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p>Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and I did in my exploratory data analysis.</p>
 <p>The main takeaway is we see a great response from staples but not much beyond that site.</p>
 <p>R100 had lodging and is weird because treatments were started till year 2. V17 was kinda limited in a good range of nitrogen rates and NDSU didn’t show much response because it was hot and dry when they put down their urea and they only did a spring timing. The messyness of these sites may be better shown in the combined analysis of all site years.</p>
-<section id="staples" class="level5">
-<h5 class="anchored" data-anchor-id="staples">Staples</h5>
+<section id="staples-1" class="level5">
+<h5 class="anchored" data-anchor-id="staples-1">Staples</h5>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Analysis of Deviance Table (Type II Wald chisquare tests)

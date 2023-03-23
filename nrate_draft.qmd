@@ -3,9 +3,9 @@ title: "N-rate Timing"
 subtitle: "first draft"
 author: "Jesse Puka-Beals"
 date: "`r Sys.Date()`"
-# format:
-  # pdf:
-      # toc: true
+#format:
+   #pdf:
+       # toc: true
  # revealjs:
   # docx:
     # reference-doc: word_style.docx
