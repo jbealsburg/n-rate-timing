@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jesse Puka-Beals">
-<meta name="dcterms.date" content="2023-03-22">
+<meta name="dcterms.date" content="2023-03-23">
 
 <title>N-rate Timing</title>
 <style>
@@ -21,6 +21,25 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
+}
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
 }
 </style>
 
@@ -66,7 +85,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 22, 2023</p>
+      <p class="date">March 23, 2023</p>
     </div>
   </div>
   
@@ -161,6 +180,25 @@ ul.task-list li input[type="checkbox"] {
 </table>
 </div>
 </div>
+<section id="text---all-sites" class="level3">
+<h3 class="anchored" data-anchor-id="text---all-sites">Text - all sites</h3>
+</section>
+<section id="statistical-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="statistical-analysis">Statistical analysis</h3>
+<p>Data was analyzed in R and we intend to provide the code used <span class="citation" data-cites="R">(<a href="#ref-R" role="doc-biblioref">R Core Team 2022</a>)</span>.</p>
+<p>Response variables were inspected for outliers using boxplots and no values were removed for being unreasonable.</p>
+<p>Where linear models were fit, response variables were normally distributed.</p>
+<p>We fit linear models and linear mixed effect models to subsets of data based on the hypothesis being tested <span class="citation" data-cites="lme4">(<a href="#ref-lme4" role="doc-biblioref">Bates et al. 2015</a>)</span>.</p>
+<p>If a model was comparing the relationship between two continuous variables, we first fit models to determine which function best fit the <span class="math inline">\(y~x\)</span> relationship. We would rely on the locally estimated regression to inform which linear regression candidates and the best fits were simply <span class="math inline">\(y~x\)</span> and <span class="math inline">\(y~x+x^2\)</span> <span class="citation" data-cites="tidyverse">(<a href="#ref-tidyverse" role="doc-biblioref">Wickham et al. 2019</a>)</span>. Models were ultimately selected based on AIC.</p>
+<p><span class="math display">\[
+Y = nRate * timing * standAge * location + (1|block)
+\]</span> A global model for a data subset of fewer than 4 locations in <span class="citation" data-cites="lme4">Bates et al. (<a href="#ref-lme4" role="doc-biblioref">2015</a>)</span> syntax where * specifies a full factorial combination and (1|block) specifies a separate y-intercept for each block. We are modeling nRate as a first order polynomial for simplicity, but often the model was improved when nRate was a second order polynomial.</p>
+<p><span class="math display">\[
+Y = nRate * timing * standAge + (1|location/year/block)
+\]</span> A global model for the dataset spanning 4 years and 4 locations in lme4 syntax <span class="citation" data-cites="lme4">(<a href="#ref-lme4" role="doc-biblioref">Bates et al. 2015</a>)</span>. The (1|location/year/block) specifies the nesting random effects where block is within year and within location. We are modeling nRate as a first order polynomial for simplicity, but often the model was improved when nRate was a second order polynomial.</p>
+<p>We would first fit global models which would contain a full factorial combination of all fixed effects. This model would often be overfit and require the removal of parameters. If the fit was singular, we would remove random effects that explained zero variance, sometimes shifting to a simple linear model. If the model was rank deficient, we would test whether we could reject the Ho that the coefficient of a given parameter was zero using ‘Anova’ <span class="citation" data-cites="car">(<a href="#ref-car" role="doc-biblioref">Fox and Weisberg 2019</a>)</span>. If we failed to reject the Ho, we would remove those parameters from the model and rerun the model.</p>
+<p>After non-significant parameters were removed from the global models, coefficients were tested again using ‘Anova’ <span class="citation" data-cites="car">(<a href="#ref-car" role="doc-biblioref">Fox and Weisberg 2019</a>)</span>. Estimated marginal means were calculated across groups where there was no interaction <span class="citation" data-cites="emmeans">(<a href="#ref-emmeans" role="doc-biblioref">Lenth 2022</a>)</span>. We calculated 95% confidence intervals and assigned groups to different levels of the fixed effect using an alpha of 0.05 and a tukey adjustment <span class="citation" data-cites="multcomp">(<a href="#ref-multcomp" role="doc-biblioref">Hothorn, Bretz, and Westfall 2008</a>)</span>.</p>
+</section>
 </section>
 <section id="lodging" class="level1">
 <h1>Lodging</h1>
@@ -444,6 +482,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p>Change in yield over stand.age was different, Staples when down in year 2 and V17 went up. We will need to separate by location or stand age.</p>
 <section id="slice-by-stand-age" class="level4">
 <h4 class="anchored" data-anchor-id="slice-by-stand-age">Slice by stand age</h4>
+<p>It would be interesting to know if there is an ideal N rate or timing in year 1 and then a different one in year 2 or year 3, but Ho could not be rejected in year 1 and there were location*timing interactions in year 3.</p>
 <p>Slicing by second stand age yielded the only interesting results.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -621,13 +660,33 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
 <p>A lot of interesting interpretations here and options for extrapolation</p>
+
 </section>
 </section>
 </section>
 </section>
 </section>
 
-</main>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-lme4" class="csl-entry" role="doc-biblioentry">
+Bates, Douglas, Martin Mächler, Ben Bolker, and Steve Walker. 2015. <span>“Fitting <span>Linear</span> <span>Mixed</span>-<span>Effects</span> <span>Models</span> <span>Using</span> Lme4.”</span> <em>Journal of Statistical Software</em> 67 (1): 1–48. <a href="https://doi.org/10.18637/jss.v067.i01">https://doi.org/10.18637/jss.v067.i01</a>.
+</div>
+<div id="ref-car" class="csl-entry" role="doc-biblioentry">
+Fox, John, and Sanford Weisberg. 2019. <em>An <span>R</span> <span>Companion</span> to <span>Applied</span> <span>Regression</span></em>. Third. Thousand Oaks CA: Sage. <a href="https://socialsciences.mcmaster.ca/jfox/Books/Companion/">https://socialsciences.mcmaster.ca/jfox/Books/Companion/</a>.
+</div>
+<div id="ref-multcomp" class="csl-entry" role="doc-biblioentry">
+Hothorn, Torsten, Frank Bretz, and Peter Westfall. 2008. <span>“Simultaneous <span>Inference</span> in <span>General</span> <span>Parametric</span> <span>Models</span>.”</span> <em>Biometrical Journal</em> 50 (3): 346–63.
+</div>
+<div id="ref-emmeans" class="csl-entry" role="doc-biblioentry">
+Lenth, Russell V. 2022. <em>Emmeans: <span>Estimated</span> <span>Marginal</span> <span>Means</span>, Aka <span>Least</span>-<span>Squares</span> <span>Means</span></em>. <a href="https://CRAN.R-project.org/package=emmeans">https://CRAN.R-project.org/package=emmeans</a>.
+</div>
+<div id="ref-R" class="csl-entry" role="doc-biblioentry">
+R Core Team. 2022. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.
+</div>
+<div id="ref-tidyverse" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. <span>“Welcome to the Tidyverse.”</span> <em>Journal of Open Source Software</em> 4 (43): 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.
+</div>
+</div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {

@@ -16,23 +16,24 @@ execute:
   warning: false
 editor_options: 
   chunk_output_type: console
+bibliography: bib_rPackages.bib
 ---
 
 # Key points
 
-- We applied N at different rates and timings to IWG stands over 10 site-years and collected yield, plant height and lodging data. 
+-   We applied N at different rates and timings to IWG stands over 10 site-years and collected yield, plant height and lodging data.
 
-- We observed serious lodging in only 1 site-year, and observed lower lodging when N was applied at lower rates and further away from harvest (i.e. fall vs. spring or summer). Lodging was negatively correlated with plant height ($r=-0.5$)
+-   We observed serious lodging in only 1 site-year, and observed lower lodging when N was applied at lower rates and further away from harvest (i.e. fall vs. spring or summer). Lodging was negatively correlated with plant height ($r=-0.5$)
 
-- For both cumulative and yearly yield response to nitrogen rate, a quadratic relationship fit the data best, suggesting there is an optimal N rate.
+-   For both cumulative and yearly yield response to nitrogen rate, a quadratic relationship fit the data best, suggesting there is an optimal N rate.
 
-- Combined across all site-years, yields were higher when N was applied in the fall versus in the spring or when split with a summer application. 
+-   Combined across all site-years, yields were higher when N was applied in the fall versus in the spring or when split with a summer application.
 
-- Of sites where we tracked yield over three years, we failed to reject the Ho that yields differed among stands that recieved different N rates and timings. 
+-   Of sites where we tracked yield over three years, we failed to reject the Ho that yields differed among stands that recieved different N rates and timings.
 
-- The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More field trials are required to capture the variability of yield response to N rate and timing. 
+-   The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More field trials are required to capture the variability of yield response to N rate and timing.
 
-- The optimal fertility program is likely site specific. 
+-   The optimal fertility program is likely site specific.
 
 <!-- # Data -->
 
@@ -95,7 +96,7 @@ dat %>%
   )
 ```
 
-Our dataset is unbalanced because design was not consistent across sites. First we try to see a consistent response across site-years, then we may analyze each site seperately. 
+Our dataset is unbalanced because design was not consistent across sites. First we try to see a consistent response across site-years, then we may analyze each site seperately.
 
 ```{r}
 dat %>% 
@@ -105,6 +106,36 @@ dat %>%
     caption = "We have 10 site-years, more than enough to be a random effect"
   )
 ```
+
+### Text - all sites
+
+### Statistical analysis
+
+Data was analyzed in R and we intend to provide the code used [@R].
+
+Response variables were inspected for outliers using boxplots and no values were removed for being unreasonable.
+
+Where linear models were fit, response variables were normally distributed.
+
+We fit linear models and linear mixed effect models to subsets of data based on the hypothesis being tested [@lme4].
+
+If a model was comparing the relationship between two continuous variables, we first fit models to determine which function best fit the $y~x$ relationship. We would rely on the locally estimated regression to inform which linear regression candidates and the best fits were simply $y~x$ and $y~x+x^2$ [@tidyverse]. Models were ultimately selected based on AIC. 
+
+
+$$ 
+Y = nRate * timing * standAge * location + (1|block)
+$$
+A global model for a data subset of fewer than 4 locations in @lme4 syntax where * specifies a full factorial combination and (1|block) specifies a separate y-intercept for each block. We are modeling nRate as a first order polynomial for simplicity, but often the model was improved when nRate was a second order polynomial.
+
+$$
+Y = nRate * timing * standAge + (1|location/year/block)
+$$
+A global model for the dataset spanning 4 years and 4 locations in lme4 syntax [@lme4]. The (1|location/year/block) specifies the nesting random effects where block is within year and within location. We are modeling nRate as a first order polynomial for simplicity, but often the model was improved when nRate was a second order polynomial.
+
+We would first fit global models which would contain a full factorial combination of all fixed effects. This model would often be overfit and require the removal of parameters. If the fit was singular, we would remove random effects that explained zero variance, sometimes shifting to a simple linear model. If the model was rank deficient, we would test whether we could reject the Ho that the coefficient of a given parameter was zero using 'Anova' [@car]. If we failed to reject the Ho, we would remove those parameters from the model and rerun the model. 
+
+After non-significant parameters were removed from the global models, coefficients were tested again using 'Anova' [@car]. Estimated marginal means were calculated across groups where there was no interaction [@emmeans]. We calculated 95% confidence intervals and assigned groups to different levels of the fixed effect using an alpha of 0.05 and a tukey adjustment [@multcomp].
+
 
 
 # Lodging
@@ -194,7 +225,7 @@ dat %>%
   anova()
 ```
 
-We reject Ho that the rate of nitrogen does not impact lodging. 
+We reject Ho that the rate of nitrogen does not impact lodging.
 
 We fail to reject Ho that timing has an impact on lodging.
 
@@ -248,7 +279,7 @@ We observe a pearson correlation coefficient of -0.5 between height and lodging.
 
 ## Cumulative
 
-Cumulative yield of kernza stands after 3 years of N fertilizer. We are subsetting dataset, Only V17 and Staples meet this criteria (6 site years). We sum across stand.age to create a cumulative yield and a cumulative amount of N applied, then divide both values by 3 to get a yearly yield~N response. 
+Cumulative yield of kernza stands after 3 years of N fertilizer. We are subsetting dataset, Only V17 and Staples meet this criteria (6 site years). We sum across stand.age to create a cumulative yield and a cumulative amount of N applied, then divide both values by 3 to get a yearly yield\~N response.
 
 ```{r, include=F}
 dat %>% 
@@ -330,7 +361,7 @@ We fail to reject the Ho that timing does not impact yield
 
 ### Quadratic linear mixed effect model
 
-Here we have our fixed effect of cumulative N, timing and a random effect of block. Since we only have two sites, location is treated as a fixed effect. 
+Here we have our fixed effect of cumulative N, timing and a random effect of block. Since we only have two sites, location is treated as a fixed effect.
 
 ```{r}
 dat %>% 
@@ -370,11 +401,11 @@ dat %>%
   )
 ```
 
-TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years when modelled as a fixed effect model. Personally, I would say our data suggests at around 60 kg N ha per year results in best grain yields and then adding more N has no effect. When modeled as a simple quadratic linear model, we can make this conclusion, but when modelled as a mixed effect model we cannot. 
+TAKEAWAY: We applied N at differing rates and timings over 3 years at two locations. We cannot reject the Ho that the amount of N and the timing of N do not impact the cumulative yield over the 3 years when modelled as a fixed effect model. Personally, I would say our data suggests at around 60 kg N ha per year results in best grain yields and then adding more N has no effect. When modeled as a simple quadratic linear model, we can make this conclusion, but when modelled as a mixed effect model we cannot.
 
 ## Yearly performance
 
-We are using all site years except third stand age of R100 due to high lodging. 
+We are using all site years except third stand age of R100 due to high lodging.
 
 How does N timing and N amount correlate with yield in a given year?
 
@@ -410,9 +441,9 @@ dat %>%
 
 ```
 
-We reject Ho that stand.age, timing and nitrogen rate do not impact yield 
+We reject Ho that stand.age, timing and nitrogen rate do not impact yield
 
-Here we have subsetted data so we have removed instances where a timing was Fall but no fall N was applied. We only start doing this here because this is the first time we are looking at timing across years at each year. 
+Here we have subsetted data so we have removed instances where a timing was Fall but no fall N was applied. We only start doing this here because this is the first time we are looking at timing across years at each year.
 
 #### Nitrogen rate on yield
 
@@ -438,7 +469,7 @@ dat %>%
   )
 ```
 
-We previously learned the relationship between N rate and yield is best modelled quadratically and then we rejected Ho that nitrogen rate does not impact yield. Here we are visualizing the subsetted data used in the model. 
+We previously learned the relationship between N rate and yield is best modelled quadratically and then we rejected Ho that nitrogen rate does not impact yield. Here we are visualizing the subsetted data used in the model.
 
 #### Timing on yield
 
@@ -483,15 +514,15 @@ dat %>%
   )
 ```
 
-We reject the Ho that yields were the same regardless of timing. Applying in the fall was estimated to have a higher grain yield than when split in the spring, summer or applied alone in the spring. 
+We reject the Ho that yields were the same regardless of timing. Applying in the fall was estimated to have a higher grain yield than when split in the spring, summer or applied alone in the spring.
 
-Since the dataset is unbalanced, we reported estimated marginal means, 95% confidence intervals and the number of data points within each timing used in the model.  
+Since the dataset is unbalanced, we reported estimated marginal means, 95% confidence intervals and the number of data points within each timing used in the model.
 
 ### Full model, location as fixed effect
 
 We have 4 locations and there is a rationale to model them as fixed effects. This puts a lot of stress on our model by cutting it up by n rate, timing, stand age and location. We end up making a lot of meaningless comparisons and need to reduce the comparisons we make in order to prevent a rank deficient model.
 
-We ran a full factorial model, then would remove interaction terms that were insignificant and rerun the model. 
+We ran a full factorial model, then would remove interaction terms that were insignificant and rerun the model.
 
 we removed R100 from the dataset (site years = 8) because it only had one stand age after we removed third stand age for lodging and when stand.age is modelled as a fixed effect the R100 data doesn't provide any utility to testing those hypotheses
 
@@ -523,11 +554,13 @@ dat %>%
   car::Anova()
 ```
 
-Change in yield over stand.age was different, Staples when down in year 2 and V17 went up. We will need to separate by location or stand age. 
+Change in yield over stand.age was different, Staples when down in year 2 and V17 went up. We will need to separate by location or stand age.
 
 #### Slice by stand age
 
-Slicing by second stand age yielded the only interesting results. 
+It would be interesting to know if there is an ideal N rate or timing in year 1 and then a different one in year 2 or year 3, but Ho could not be rejected in year 1 and there were location*timing interactions in year 3. 
+
+Slicing by second stand age yielded the only interesting results.
 
 ```{r}
 dat %>% 
@@ -585,9 +618,9 @@ TAKEAWAY: across 8 site-years, second year yields were higher when N was applied
 
 Lastly, we can slice by site and do an independent analysis for each site. This is what Dominic did and I did in my exploratory data analysis.
 
-The main takeaway is we see a great response from staples but not much beyond that site. 
+The main takeaway is we see a great response from staples but not much beyond that site.
 
-R100 had lodging and is weird because treatments were started till year 2. V17 was kinda limited in a good range of nitrogen rates and NDSU didn't show much response because it was hot and dry when they put down their urea and they only did a spring timing. The messyness of these sites may be better shown in the combined analysis of all site years. 
+R100 had lodging and is weird because treatments were started till year 2. V17 was kinda limited in a good range of nitrogen rates and NDSU didn't show much response because it was hot and dry when they put down their urea and they only did a spring timing. The messyness of these sites may be better shown in the combined analysis of all site years.
 
 ##### Staples
 
@@ -642,7 +675,6 @@ dat %>%
   knitr::kable()
 ```
 
-
 ```{r nrate}
 dat %>% 
   filter(location=="Staples") %>% 
@@ -680,6 +712,3 @@ dat %>%
 ```
 
 A lot of interesting interpretations here and options for extrapolation
-
-
-
