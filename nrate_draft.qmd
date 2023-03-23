@@ -3,9 +3,9 @@ title: "N-rate Timing"
 subtitle: "first draft"
 author: "Jesse Puka-Beals"
 date: "`r Sys.Date()`"
-format:
-   pdf:
-       toc: true
+# format:
+   # pdf:
+       # toc: true
  # revealjs:
   # docx:
     # reference-doc: word_style.docx
@@ -18,6 +18,10 @@ editor_options:
   chunk_output_type: console
 bibliography: bib_rPackages.bib
 ---
+
+<!-- # To do -->
+<!-- https://agronomy4future.org/?p=17203 -->
+
 
 # Key points
 
