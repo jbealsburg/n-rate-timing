@@ -23,6 +23,7 @@ bibliography: bib_rPackages.bib
 <!-- https://agronomy4future.org/?p=17203 -->
 
 
+
 # Key points
 
 -   We applied N at different rates and timings to IWG stands over 10 site-years and collected yield, plant height and lodging data.
@@ -37,7 +38,7 @@ bibliography: bib_rPackages.bib
 
 -   The relationship between N rate and timing is complex to measure in field experiments. Site conditions can greatly change the amount of N that becomes available to the plant, especially when applied as urea on the soil surface. More field trials are required to capture the variability of yield response to N rate and timing.
 
--   The optimal fertility program is likely site specific and possibly year specific.
+-   The optimal fertility program is likely site specific and possibly year specific. For example, fertilzing in spring year 1 and then fall for year 2 and year 3
 
     -   Some sites like Staples responded strongly to N, where other sites showed no response (NDSU, R100).
 
