@@ -20,8 +20,16 @@ bibliography: bib_rPackages.bib
 ---
 
 <!-- # To do -->
+
 <!-- https://agronomy4future.org/?p=17203 -->
 
+# Discussion
+
+-   We designed a universal dataframe that can add in any sort of Nrate\*timing data. We hope to add more to the analysis
+
+-   NDSU only had spring fertilizer and it had very little effect. One of the reasons why we observe Fall fertilizer is better than spring, but not better than control is probably because NDSU showed so little response to spring N
+
+-   X-axis for these graphs should be "N applied as urea on soil surface"
 
 
 # Key points
